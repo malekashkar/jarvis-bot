@@ -1,0 +1,2 @@
+- Instead of console logging errors send them in chat.
+- Delete the images you send to the bot.

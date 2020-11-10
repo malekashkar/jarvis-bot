@@ -5,6 +5,7 @@ import { Guild, Message } from "discord.js";
 import User from "../../models/user";
 import { uploadImage } from "../../util";
 import embeds from "../../util/embed";
+import Global from "../../models/global";
 
 export default class ImgurLink extends Command {
   cmdName = "imgur";

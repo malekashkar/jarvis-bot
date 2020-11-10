@@ -12,10 +12,12 @@ export async function confirmator(
     embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)
   );
 
-  await react(questionMessage, ["✅"]);
+  await react(questionMessage, ["✅", "❎"]);
 
   const reactionCollector = await questionMessage.awaitReactions(
-    (r, u) => u.id === reactionUserId && r.emoji.name === "✅",
+    (r, u) =>
+      (u.id === reactionUserId && r.emoji.name === "✅") ||
+      (u.id === reactionUserId && r.emoji.name === "❎"),
     { max: 1, time: 900000, errors: ["time"] }
   );
 
@@ -24,7 +26,8 @@ export async function confirmator(
   if (
     !reactionCollector ||
     !reactionCollector.size ||
-    !reactionCollector.first()
+    !reactionCollector.first() ||
+    reactionCollector.first().emoji.name === "❎"
   )
     return false;
   return true;
@@ -36,11 +39,11 @@ export async function optionReactQuestion(
   options: string[],
   userId?: string
 ) {
-  const emojis = emojiList.slice(0, emojiList.length);
+  const emojis = emojiList.slice(0, options.length);
   const reactionUserId = userId || message.author.id;
   const questionOptions = options.map((x, i) => `${emojis[i]} ${x}`);
   const questionMessage = await message.channel.send(
-    embeds.question(question + questionOptions)
+    embeds.question(question + `\n\n${questionOptions.join("\n")}`)
   );
 
   await react(questionMessage, emojis);
@@ -65,9 +68,8 @@ export async function messageQuestion(
 
   const messageCollector = await message.channel.awaitMessages(
     (x) =>
-      x.author.id === reactionUserId && options.length
-        ? options.includes(x.content)
-        : true,
+      x.author.id === reactionUserId &&
+      (options && options.length ? options.includes(x.content) : true),
     { max: 1, time: 900000, errors: ["time"] }
   );
 

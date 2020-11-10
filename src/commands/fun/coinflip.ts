@@ -3,6 +3,7 @@ import Client from "../../structures/client";
 import { DocumentType } from "@typegoose/typegoose";
 import { Guild, Message, MessageAttachment } from "discord.js";
 import User from "../../models/user";
+import Global from "../../models/global";
 
 export default class CoinflipCommand extends Command {
   cmdName = "coinflip";

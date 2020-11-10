@@ -1,4 +1,9 @@
 import { Message } from "discord.js";
+import fetch from "node-fetch";
+import dotenv from "dotenv";
+import path from "path";
+
+dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 export function toTitleCase(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
@@ -70,7 +75,8 @@ export async function imgurImage(query: string) {
 export async function uploadImage(image: string) {
   const response = await fetch(`https://api.imgur.com/3/image`, {
     headers: {
-      Authorization: `Bearer ${process.env.a3c62e2303d0b422c922225d8d9d3e89794cb3ed}`,
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`,
     },
     body: JSON.stringify({
       image,

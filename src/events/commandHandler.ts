@@ -16,7 +16,7 @@ export default class CommandHandler extends Event {
       (await UserModel.create({ userId: message.author.id }));
 
     const globalData =
-      (await GlobalModel.findOne()) || (await GlobalModel.create());
+      (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
     if (message.content.indexOf(globalData.prefix) !== 0) return;
     if (message.channel.type === "text") message.delete();
@@ -41,11 +41,12 @@ export default class CommandHandler extends Event {
     }
 
     function permissionCheck(userId: string, permissionType: string) {
-      if (permissionType.toLowerCase() === "ACCESS" && !userData.access)
-        return false;
-      else if (
-        permissionType.toLowerCase() === "owner" &&
-        message.author.id !== settings.ownerId
+      if (
+        (permissionType.toLowerCase() === "access" && !userData.access) ||
+        (permissionType.toLowerCase() === "access" &&
+          message.author.id !== settings.ownerId) ||
+        (permissionType.toLowerCase() === "owner" &&
+          message.author.id !== settings.ownerId)
       )
         return false;
 

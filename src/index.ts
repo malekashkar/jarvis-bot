@@ -7,7 +7,6 @@ import fs from "fs";
 import Event from "./events";
 import Command from "./commands";
 import logger from "./util/logger";
-import { Collection, Invite } from "discord.js";
 import Client from "./structures/client";
 
 dotenv.config({ path: path.join(__dirname, "..", ".env") });
@@ -18,6 +17,7 @@ export interface ISettings {
   emojis: string[];
   mongoURL: string;
   spreadsheet: string;
+  projectId: string;
 }
 
 const client = new Client({

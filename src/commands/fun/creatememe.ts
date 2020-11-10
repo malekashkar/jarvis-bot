@@ -4,6 +4,7 @@ import { DocumentType } from "@typegoose/typegoose";
 import { Guild, Message, MessageAttachment, MessageEmbed } from "discord.js";
 import User from "../../models/user";
 import { createCanvas, loadImage, registerFont } from "canvas";
+import Global from "../../models/global";
 
 export default class CreateMemeCommand extends Command {
   cmdName = "creatememe";

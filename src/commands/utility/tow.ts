@@ -1,13 +1,20 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
 import { Client, Message } from "discord.js";
-import vision from "@google-cloud/vision";
-import dotenv from "dotenv";
+import { ImageAnnotatorClient } from "@google-cloud/vision";
 import moment from "moment";
+import dotenv from "dotenv";
+import path from "path";
 
-import { react, emojis, Information, uploadImage } from "../../util";
+import {
+  react,
+  emojis,
+  Information,
+  uploadImage,
+  toTitleCase,
+} from "../../util";
+import spreadsheetCreds from "../../spreadsheet_creds.json";
 import settings from "../../settings";
 import embeds from "../../util/embed";
-import creds from "../../spreadsheet_api";
 import Command from "..";
 import {
   optionReactQuestion,
@@ -15,7 +22,7 @@ import {
   messageQuestion,
 } from "../../util/questions";
 
-dotenv.config();
+dotenv.config({ path: path.join(__dirname, "..", "..", "..", ".env") });
 
 export default class TowCommand extends Command {
   cmdName = "tow";
@@ -45,19 +52,30 @@ export default class TowCommand extends Command {
     /* Company Name */
     if (!information.company) {
       const companyName = await callType(message);
-      if (!companyName) return console.log(`Error with company name.`);
+      if (!companyName)
+        return message.channel.send(
+          embeds.error(`An error was caught while getting the company name.`)
+        );
       information.company = companyName;
     }
 
     /* Get Images & Information */
     if (information.company === "AAA") {
       const images = await getImages(message);
-      if (!images) return console.log(`Error getting images.`);
+      if (!images)
+        return message.channel.send(
+          embeds.error(`An error was caught while getting the images.`)
+        );
       information.images = images;
 
+      console.log(images);
       const imageInformation = await getImagesInformation(images, information);
       if (!imageInformation)
-        return console.log(`Error getting information for images.`);
+        return message.channel.send(
+          embeds.error(
+            `An error was caught while getting the image(s) information.`
+          )
+        );
       information = imageInformation;
     }
 
@@ -75,14 +93,20 @@ export default class TowCommand extends Command {
       !information.color
     ) {
       const detailsInformation = await carDetails(message, information);
-      if (!detailsInformation) return console.log(`Error getting car details.`);
+      if (!detailsInformation)
+        return message.channel.send(
+          embeds.error(`An error was caught while getting the car details.`)
+        );
       information = detailsInformation;
     }
 
     /* Tow Distance */
     if (!information.tow_distance) {
       const tow_distance = await towDistance(message);
-      if (!tow_distance) return console.log(`Error getting tow distance.`);
+      if (!tow_distance)
+        return message.channel.send(
+          embeds.error(`An error was caught while getting the tow distance.`)
+        );
       information.tow_distance = tow_distance;
     }
 
@@ -103,7 +127,10 @@ export default class TowCommand extends Command {
     /* Payment Method */
     if (!information.payment) {
       const method = await getPaymentMethod(message);
-      if (!method) return console.log(`Error getting payment method.`);
+      if (!method)
+        return message.channel.send(
+          embeds.error(`An error was caught while getting the payment method.`)
+        );
       information.payment = method;
     }
 
@@ -114,8 +141,7 @@ export default class TowCommand extends Command {
 
 async function submitInformation(information: Information) {
   const doc = new GoogleSpreadsheet(settings.spreadsheet);
-
-  await doc.useServiceAccountAuth(creds);
+  await doc.useServiceAccountAuth(spreadsheetCreds);
   await doc.loadInfo();
 
   const sheet = doc.sheetsByIndex[5];
@@ -135,8 +161,14 @@ async function confirmFinalProduct(message: Message, information: Information) {
 
   for (let i = 0; i < infoEntries.length; i++) {
     questionEmbed.addField(
-      `${emojis[i]}. ${infoEntries[i]}`,
-      `${infoValues[i] || "N/A"}`,
+      `${emojis[i]} ${toTitleCase(infoEntries[i])}`,
+      `${
+        Array.isArray(infoValues[i])
+          ? infoValues[i].length
+            ? infoValues[i].join("\n")
+            : "N/A"
+          : infoValues[i] || "N/A"
+      }`,
       true
     );
   }
@@ -152,29 +184,21 @@ async function confirmFinalProduct(message: Message, information: Information) {
   let infoErrorReactions = question.reactions.cache
     .array()
     .filter((x) => x.count === 2 && x.emoji.name !== "✅");
-  if (!infoErrorReactions || !infoErrorReactions.length) {
-    await submitInformation(information);
-    return await message.channel.send(
-      embeds.normal(
-        `Tow Complete`,
-        `The information has been posted to the spreadsheet!`
-      )
-    );
+  if (infoErrorReactions || infoErrorReactions.length) {
+    for (let i = 0; i < infoErrorReactions.length; i++) {
+      type informationProps = keyof Omit<Information, "images" | "apd">;
+      const keyIndex = emojis.indexOf(infoErrorReactions[i].emoji.name);
+      const changeVariable = infoEntries[keyIndex] as informationProps;
+      const question = await messageQuestion(
+        message,
+        `What would you like to replease ${changeVariable} with.`
+      );
+
+      information[changeVariable] = question ? question.content : "N/A";
+    }
   }
 
-  for (let i = 0; i < infoErrorReactions.length; i++) {
-    type informationKeysType = keyof Omit<Information, "images" | "apd">;
-
-    const keyIndex = emojis.indexOf(infoErrorReactions[i].emoji.name);
-    const changeVariable = infoEntries[keyIndex] as informationKeysType;
-    const question = await messageQuestion(
-      message,
-      `What would you like to replease ${changeVariable} with.`
-    );
-
-    information[changeVariable] = question ? question.content : "N/A";
-  }
-
+  if (question.deletable) question.delete();
   await submitInformation(information);
   await message.channel.send(
     embeds.normal(
@@ -251,6 +275,7 @@ async function getPaymentMethod(message: Message) {
   );
 
   const emoji = reactionCollector.first().emoji.name;
+  if (question.deletable) question.delete();
 
   const method =
     emoji === "1️⃣"
@@ -271,31 +296,42 @@ async function getPaymentMethod(message: Message) {
 }
 
 async function towDistance(message: Message) {
-  const question = await messageQuestion(
-    message,
-    `What is the tow mileage? (Use numbers)`
+  const questionMessage = await message.channel.send(
+    embeds.question(`What is the tow mileage? (Use numbers)`)
   );
-  if (!question) return null;
 
-  return question.content;
+  const messageCollector = await message.channel.awaitMessages(
+    (x) =>
+      x.author.id === message.author.id &&
+      parseInt(x.content) &&
+      !isNaN(parseInt(x.content)),
+    { max: 1, time: 900000, errors: ["time"] }
+  );
+
+  if (questionMessage.deletable) await questionMessage.delete();
+  if (messageCollector.first().deletable)
+    await messageCollector.first().delete();
+
+  if (!messageCollector.first()) return null;
+  return messageCollector.first().content;
 }
 
 async function carDetails(message: Message, information: Information) {
-  const ogInformation = information;
-
   const question = await messageQuestion(
     message,
     `What is the vehicle year, make, model, and color? (ex. year/make/model/color)`
   );
   if (!question) return null;
 
-  const content = question.content;
-  information.year = content.split("/")[0];
-  information.make = content.split("/")[1];
-  information.model = content.split("/")[2];
-  information.color = content.split("/")[3];
+  const content = question.content.split("/");
+  if (content.length !== 4) return null;
 
-  return information === ogInformation ? null : information;
+  information.year = content[0];
+  information.make = content[1];
+  information.model = content[2];
+  information.color = content[3];
+
+  return information;
 }
 
 async function getImagesInformation(
@@ -303,47 +339,41 @@ async function getImagesInformation(
   information: Information
 ) {
   const ogInformation = information;
-  const vClient = new vision.ImageAnnotatorClient();
+  const visionClient = new ImageAnnotatorClient();
 
-  for (let i = 0; i < images.length; i++) {
-    const ans = await vClient.textDetection(images[i]);
-    if (!ans[0] || !ans[0].fullTextAnnotation) continue;
+  const imgurImages = (
+    await Promise.all(images.map(async (image) => await uploadImage(image)))
+  ).filter((x): x is string => !!x);
+  information.images = imgurImages;
 
-    const imgurLink = await uploadImage(images[i]);
-    if (!imgurLink) return null;
-    information.images.push(imgurLink);
+  const imageToText = (
+    await Promise.all(
+      imgurImages.map(async (image) => {
+        const answer = await visionClient.textDetection(image);
+        return answer[0]?.fullTextAnnotation?.text;
+      })
+    )
+  )
+    .filter((x): x is string => !!x || x !== "")
+    .map((x) => x.split("\n"))
+    .flat();
 
-    const results = ans[0].fullTextAnnotation.text
-      .split("\n")
-      .splice(0, 3)
-      .filter((x) => !x.includes(": ") && x.includes(":"));
+  type informationProps = keyof Omit<Information, "images" | "apd">;
+  for (let i = 0; i < imageToText.length; i++) {
+    const currentResult = imageToText[i];
+    const nextResult = imageToText[i + 1];
 
-    for (let i = 0; i < results.length; i++) {
-      const result = results[i + 1]
-        .replace(":", "")
-        .replace(" ", "_")
-        .toLowerCase();
-
-      if (results[i].toLowerCase().includes("year")) information.year = result;
-      if (results[i].toLowerCase().includes("make")) information.make = result;
-      if (results[i].toLowerCase().includes("model"))
-        information.model = result;
-      if (results[i].toLowerCase().includes("color"))
-        information.color = result;
-      if (results[i].toLowerCase().includes("er distance"))
-        information.er_distance = result;
-      if (results[i].toLowerCase().includes("tow distance"))
-        information.tow_distance = result;
-      if (results[i].toLowerCase().includes("level"))
-        information.level = result;
-      if (results[i].toLowerCase().includes("call id"))
-        information.call_id = result;
-      if (results[i].toLowerCase().includes("trouble code 1"))
-        information.trouble_code_1 = result;
+    for (const word of Object.keys(information)) {
+      const formattedWord = word.replace("_", " ").toLowerCase();
+      if (
+        currentResult.toLowerCase().includes(formattedWord) &&
+        currentResult.toLowerCase().includes(":")
+      )
+        information[word as informationProps] = nextResult;
     }
-
-    return information === ogInformation ? null : information;
   }
+
+  return information === ogInformation ? null : information;
 }
 
 async function serviceCompleted(message: Message) {
@@ -376,16 +406,19 @@ async function getImages(message: Message) {
   const questionMessageIndex = messages
     .map((x) => x.id)
     .indexOf(questionMessage.id);
-  const imageLinks = messages
+  const images = messages
     .array()
     .slice(0, questionMessageIndex)
-    .map((x) => {
-      if (x.attachments && x.attachments.first() && x.attachments.first().url)
-        return x.attachments.first().url;
-    })
-    .filter((x) => !!x);
+    .filter(
+      (x) =>
+        x.author.id === message.author.id &&
+        x.attachments &&
+        x.attachments.first() &&
+        x.attachments.first().url
+    )
+    .map((x) => x.attachments.first().url);
 
-  return imageLinks.length ? imageLinks : null;
+  return images.length ? images : null;
 }
 
 async function callType(message: Message) {

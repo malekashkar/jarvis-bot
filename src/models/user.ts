@@ -22,16 +22,16 @@ export class Reminder {
 }
 
 export default class User {
-  @prop({ required: true })
-  userId: string;
+  @prop()
+  userId!: string;
 
-  @prop({ required: true, default: false })
+  @prop()
   access?: boolean;
 
-  @prop({ required: true, default: null })
+  @prop()
   usedCode?: string;
 
-  @prop({ required: false, type: Reminder })
+  @prop({ type: Reminder })
   reminders?: Reminder[];
 }
 

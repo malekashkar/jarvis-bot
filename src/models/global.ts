@@ -1,13 +1,13 @@
 import { getModelForClass, prop } from "@typegoose/typegoose";
 
 export default class Global {
-  @prop({ required: true, default: "-" })
+  @prop({ default: "-" })
   prefix?: string;
 
-  @prop({ required: false, type: String })
+  @prop()
   codes?: string[];
 
-  @prop({ required: true, default: `Default Status` })
+  @prop({ default: `Default Status` })
   status?: string;
 }
 

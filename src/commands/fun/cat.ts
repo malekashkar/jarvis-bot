@@ -1,6 +1,7 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { Guild, Message, MessageAttachment } from "discord.js";
+import { Message, MessageAttachment } from "discord.js";
 import Command from "..";
+import Global from "../../models/global";
 import User from "../../models/user";
 import Client from "../../structures/client";
 import { imgurImage } from "../../util";
