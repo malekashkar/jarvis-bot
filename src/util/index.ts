@@ -76,14 +76,12 @@ export async function uploadImage(image: string) {
   const response = await fetch(`https://api.imgur.com/3/image`, {
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.IMGUR_ACCESS_TOKEN}`,
+      Authorization: `Bearer a3c62e2303d0b422c922225d8d9d3e89794cb3ed`,
     },
     body: JSON.stringify({
       image,
     }),
     method: "POST",
   });
-  if (!response.ok) return null;
-
-  return (await response.json()).data.link;
+  return ((await response.json()).data.link || image) as string;
 }

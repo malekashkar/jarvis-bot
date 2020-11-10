@@ -66,9 +66,7 @@ export default class TowCommand extends Command {
         return message.channel.send(
           embeds.error(`An error was caught while getting the images.`)
         );
-      information.images = images;
 
-      console.log(images);
       const imageInformation = await getImagesInformation(images, information);
       if (!imageInformation)
         return message.channel.send(
@@ -83,7 +81,7 @@ export default class TowCommand extends Command {
     if (information.company !== "AAA" && !information.completed) {
       const completed = await serviceCompleted(message);
       information.completed = completed;
-    }
+    } else information.completed = "Yes";
 
     /* Car Details */
     if (
@@ -111,7 +109,10 @@ export default class TowCommand extends Command {
     }
 
     /* Extra Images */
-    if (!information.images || !information.images.length) {
+    if (
+      (!information.images || !information.images.length) &&
+      information.company !== "AAA"
+    ) {
       const extraImages = await getImages(message);
       if (!extraImages) information.images = [];
       else information.images = extraImages;
@@ -338,7 +339,6 @@ async function getImagesInformation(
   images: string[],
   information: Information
 ) {
-  const ogInformation = information;
   const visionClient = new ImageAnnotatorClient();
 
   const imgurImages = (
@@ -373,7 +373,7 @@ async function getImagesInformation(
     }
   }
 
-  return information === ogInformation ? null : information;
+  return information;
 }
 
 async function serviceCompleted(message: Message) {
@@ -399,7 +399,6 @@ async function getImages(message: Message) {
     { max: 1, time: 900000, errors: ["time"] }
   );
 
-  if (questionMessage.deletable) await questionMessage.delete();
   if (!reactionCollector || !reactionCollector.size) return false;
 
   const messages = await message.channel.messages.fetch();
@@ -418,6 +417,7 @@ async function getImages(message: Message) {
     )
     .map((x) => x.attachments.first().url);
 
+  if (questionMessage.deletable) await questionMessage.delete();
   return images.length ? images : null;
 }
 
@@ -429,6 +429,5 @@ async function callType(message: Message) {
   );
   if (!companyReaction) return null;
 
-  const emoji = companyReaction.emoji.name;
-  return emoji === "1️⃣" ? "AAA" : emoji === "2️⃣" ? "AZ" : "NAFAR";
+  return companyReaction;
 }

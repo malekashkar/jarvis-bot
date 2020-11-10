@@ -54,7 +54,9 @@ export async function optionReactQuestion(
   );
 
   if (questionMessage.deletable) await questionMessage.delete();
-  return reactionCollector.first();
+  return reactionCollector
+    ? options[emojis.indexOf(reactionCollector.first().emoji.name)]
+    : null;
 }
 
 export async function messageQuestion(

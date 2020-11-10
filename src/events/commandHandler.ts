@@ -44,9 +44,9 @@ export default class CommandHandler extends Event {
       if (
         (permissionType.toLowerCase() === "access" && !userData.access) ||
         (permissionType.toLowerCase() === "access" &&
-          message.author.id !== settings.ownerId) ||
+          !settings.ownerId.includes(message.author.id)) ||
         (permissionType.toLowerCase() === "owner" &&
-          message.author.id !== settings.ownerId)
+          !settings.ownerId.includes(message.author.id))
       )
         return false;
 

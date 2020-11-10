@@ -34,7 +34,7 @@ export default class DashCommand extends Command {
       if (commandObj.permission === "ACCESS" && !userData.access) continue;
       if (
         commandObj.permission === "OWNER" &&
-        message.author.id !== settings.ownerId
+        !settings.ownerId.includes(message.author.id)
       )
         continue;
 
