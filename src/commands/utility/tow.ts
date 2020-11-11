@@ -12,7 +12,7 @@ import {
   uploadImage,
   toTitleCase,
 } from "../../util";
-import spreadsheetCreds from "../../spreadsheet_creds.json";
+import spreadsheetCreds from "../../../spreadsheet_creds.json";
 import settings from "../../settings";
 import embeds from "../../util/embed";
 import Command from "..";

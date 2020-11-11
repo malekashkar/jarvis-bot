@@ -1,4 +1,8 @@
+# Folders
 node_modules/
 dist/
 .vscode/
-.env/
+
+# Files
+.env
+package-lock.json

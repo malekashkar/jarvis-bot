@@ -8,8 +8,13 @@ import Event from "./events";
 import Command from "./commands";
 import logger from "./util/logger";
 import Client from "./structures/client";
+import express, { Request, Response } from "express";
 
 dotenv.config();
+
+const app = express();
+app.listen(process.env.PORT || 5000);
+app.get("/", (req: Request, res: Response) => res.send(`Get out please :)`));
 
 export interface ISettings {
   ownerId: string;
