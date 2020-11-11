@@ -9,6 +9,7 @@
     "forceConsistentCasingInFileNames": true,
     "resolveJsonModule": true,
     "outDir": "dist",
+    "rootDir": "src",
     "sourceMap": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
