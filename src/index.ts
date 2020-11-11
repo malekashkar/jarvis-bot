@@ -14,19 +14,17 @@ dotenv.config();
 
 const app = express();
 app.listen(process.env.PORT || 5000);
-app.get("/", (req: Request, res: Response) => res.send(`Get out please :)`));
-
-export interface ISettings {
-  ownerId: string;
-  status: string;
-  emojis: string[];
-  mongoURL: string;
-  spreadsheet: string;
-  projectId: string;
-}
+app.get("*", (req: Request, res: Response) =>
+  res.send(`<h1>Leave me alone please :)</h1>`)
+);
 
 const client = new Client({
   partials: ["MESSAGE", "CHANNEL", "REACTION"],
+  presence: {
+    activity: {
+      name: settings.status,
+    },
+  },
 });
 
 loadCommands();

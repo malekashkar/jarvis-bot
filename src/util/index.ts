@@ -85,3 +85,12 @@ export async function uploadImage(image: string) {
   });
   return ((await response.json()).data.link || image) as string;
 }
+
+export interface ISettings {
+  ownerId: string;
+  status: string;
+  emojis: string[];
+  mongoURL: string;
+  spreadsheet: string;
+  projectId: string;
+}

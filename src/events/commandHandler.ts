@@ -9,7 +9,12 @@ export default class CommandHandler extends Event {
   name = "message";
 
   async handle(client: Client, message: Message) {
-    if (message.author.bot) return;
+    if (
+      message.author.bot &&
+      settings.friday_id !== message.author.id &&
+      settings.vision_id !== message.author.id
+    )
+      return;
 
     const userData =
       (await UserModel.findOne({ userId: message.author.id })) ||
