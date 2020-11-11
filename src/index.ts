@@ -9,7 +9,7 @@ import Command from "./commands";
 import logger from "./util/logger";
 import Client from "./structures/client";
 
-dotenv.config({ path: path.join(__dirname, "..", ".env") });
+dotenv.config();
 
 export interface ISettings {
   ownerId: string;
