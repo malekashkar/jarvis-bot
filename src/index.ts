@@ -31,11 +31,11 @@ const client = new Client({
 
 loadCommands();
 loadEvents();
-loadDatabase(settings.mongoURL);
+loadDatabase();
 
 function loadDatabase(url: string) {
   mongoose.connect(
-    url,
+    process.env.MONGO_URL,
     {
       useNewUrlParser: true,
       useUnifiedTopology: true,
