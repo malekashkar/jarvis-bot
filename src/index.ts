@@ -33,7 +33,7 @@ loadCommands();
 loadEvents();
 loadDatabase();
 
-function loadDatabase(url: string) {
+function loadDatabase() {
   mongoose.connect(
     process.env.MONGO_URL,
     {
