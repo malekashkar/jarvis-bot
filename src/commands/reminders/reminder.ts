@@ -1,21 +1,15 @@
-import Command from "..";
-import Client from "../../structures/client";
+import ReminderCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User from "../../models/user";
 import embeds from "../../util/embed";
 
-export default class ReminderCommand extends Command {
+export default class ReminderCommand extends ReminderCommands {
   cmdName = "reminder";
   description = "Check a reminder or get a list of them.";
-  groupName = "Reminder";
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-  ) {
+  async run(message: Message, userData: DocumentType<User>) {
     const question = await message.channel.send(
       embeds.question(
         `Say **list** to list out the reminders or provide a **number** to get a specific reminder.`
@@ -24,7 +18,7 @@ export default class ReminderCommand extends Command {
     const response = await message.channel.awaitMessages(
       (x) =>
         (x.author.id === message.author.id && x.content === "list") ||
-        parseInt(x.content) <= client.guilds.cache.size,
+        parseInt(x.content) <= this.client.guilds.cache.size,
       { max: 1, time: 900000, errors: ["time"] }
     );
 
@@ -40,9 +34,9 @@ export default class ReminderCommand extends Command {
       const reminders = userData.reminders
         .map(
           (x) =>
-            `**Server:** ${client.guilds.resolve(x.guildId).name}\n**Name:** ${
-              x.name
-            }\n**ID:** ${x.id}`
+            `**Server:** ${
+              this.client.guilds.resolve(x.guildId).name
+            }\n**Name:** ${x.name}\n**ID:** ${x.id}`
         )
         .join("\n\n");
 
@@ -65,7 +59,7 @@ export default class ReminderCommand extends Command {
         embeds.normal(
           `Reminder Found`,
           `**Server:** ${
-            client.guilds.resolve(reminder.guildId).name
+            this.client.guilds.resolve(reminder.guildId).name
           }\n**Name:** ${reminder.name}\n**Message:** ${reminder.message}`
         )
       );

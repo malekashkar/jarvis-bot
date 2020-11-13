@@ -1,21 +1,18 @@
-import Command from "..";
+import AuthCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import Client from "../../structures/client";
 import { Message } from "discord.js";
 import Global from "../../models/global";
 import User from "../../models/user";
 import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 
-export default class CodeCommand extends Command {
+export default class CodeCommand extends AuthCommands {
   cmdName = "code";
   description = "Create a code for a user to redeem.";
-  groupName = "Authorization";
   aliases = ["gen"];
   permission = "OWNER";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
     globalData: DocumentType<Global>

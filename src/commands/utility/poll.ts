@@ -1,25 +1,15 @@
-import Command from "..";
-import Client from "../../structures/client";
-import { DocumentType } from "@typegoose/typegoose";
-import { Message, MessageEmbed } from "discord.js";
-import User from "../../models/user";
-import Global from "../../models/global";
+import UtilityCommands from ".";
+import { Message } from "discord.js";
 import { messageQuestion } from "../../util/questions";
 import { react, emojis } from "../../util";
 import embeds from "../../util/embed";
 
-export default class PollCommand extends Command {
+export default class PollCommand extends UtilityCommands {
   cmdName = "poll";
   description = "Create a new poll message.";
-  groupName = "Misc";
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     const questionQuestion = await messageQuestion(
       message,
       `What would you like the question to be?`

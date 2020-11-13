@@ -1,34 +1,23 @@
-import Client from "../../structures/client";
-import Command from "..";
-import { DocumentType } from "@typegoose/typegoose";
+import UtilityCommands from ".";
 import { Message, MessageEmbed } from "discord.js";
-import User from "../../models/user";
-import Global from "../../models/global";
+
 import embeds from "../../util/embed";
 import { emojis, react } from "../../util";
 
-export default class serverCommand extends Command {
+export default class serverCommand extends UtilityCommands {
   cmdName = "server";
   description = "Get a list of all the servers or check a specific one.";
-  groupName = "Moderation";
   aliases = ["servers"];
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
-    const guilds = client.guilds.cache.array();
+  async run(message: Message) {
+    const guilds = this.client.guilds.cache.array();
     const guildsFormattedText = guilds
       .map((x, i) => `${i + 1}. **${x.name}**`)
       .join("\n");
 
     const msg = await message.channel.send(
-      embeds
-        .normal(`List of Servers`, guildsFormattedText)
-        .setThumbnail(client.user.avatarURL())
+      embeds.normal(`List of Servers`, guildsFormattedText)
     );
     const selectedEmojis = emojis.slice(0, guilds.length - 1);
     await react(msg, selectedEmojis);

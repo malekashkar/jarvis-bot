@@ -1,24 +1,14 @@
-import Command from "..";
-import Client from "../../structures/client";
-import { DocumentType } from "@typegoose/typegoose";
+import ModCommands from ".";
 import { Message } from "discord.js";
-import Global from "../../models/global";
-import User from "../../models/user";
 import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 
-export default class PermsCommand extends Command {
+export default class PermsCommand extends ModCommands {
   cmdName = "perms";
   description = "Give or take a role from a user in a server.";
-  groupName = "Moderation";
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     const typeQuestion = await messageQuestion(
       message,
       `Would you like to **set** or **remove** a permission?`,
@@ -35,15 +25,16 @@ export default class PermsCommand extends Command {
     const serverResponse = await message.channel.awaitMessages(
       (x) =>
         x.author.id === message.author.id &&
-        parseInt(x.content) <= client.guilds.cache.size,
+        parseInt(x.content) <= this.client.guilds.cache.size,
       { max: 1, time: 900000, errors: ["time"] }
     );
 
     if (serverQuestion.deletable) serverQuestion.delete();
     if (serverResponse) serverResponse.first().delete();
-    const server = client.guilds.cache.get(
-      client.guilds.cache.array()[parseInt(serverResponse.first().content) - 1]
-        .id
+    const server = this.client.guilds.cache.get(
+      this.client.guilds.cache.array()[
+        parseInt(serverResponse.first().content) - 1
+      ].id
     );
     if (!server)
       return message.channel.send(

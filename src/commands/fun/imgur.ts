@@ -1,25 +1,15 @@
-import Command from "..";
-import Client from "../../structures/client";
-import { DocumentType } from "@typegoose/typegoose";
-import { Guild, Message } from "discord.js";
-import User from "../../models/user";
+import FunCommands from ".";
+import { Message } from "discord.js";
 import { uploadImage } from "../../util";
 import embeds from "../../util/embed";
-import Global from "../../models/global";
 
-export default class ImgurLink extends Command {
+export default class ImgurLink extends FunCommands {
   cmdName = "imgur";
   description = "Create a imgur link with an image.";
-  groupName = "Misc";
   aliases = ["imlink", "image"];
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     const question = await message.channel.send(
       embeds.question(`Upload an image to upload to imgur.`)
     );

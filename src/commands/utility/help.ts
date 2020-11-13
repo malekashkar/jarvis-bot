@@ -1,11 +1,9 @@
-import Command from "..";
-import Client from "../../structures/client";
+import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message, MessageEmbed, Collection } from "discord.js";
 import User from "../../models/user";
 import { emojis, react } from "../../util";
 import settings from "../../settings";
-import Global from "../../models/global";
 import embeds from "../../util/embed";
 
 export interface IGroup {
@@ -13,23 +11,20 @@ export interface IGroup {
   descriptions: string[];
 }
 
-export default class HelpCommand extends Command {
+export default class HelpCommand extends UtilityCommands {
   cmdName = "help";
   description = "Load up the help menu.";
-  groupName = "Misc";
 
   async run(
-    client: Client,
     message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
+    userData: DocumentType<User>
   ) {
     const help: Collection<string, IGroup> = new Collection();
     const helpEmbed = new MessageEmbed()
       .setColor("RANDOM")
       .setTitle(`Jarvis Help Menu`);
 
-    for (const commandObj of client.commands.array()) {
+    for (const commandObj of this.client.commands.array()) {
       if (!commandObj.groupName) continue;
       if (commandObj.permission === "ACCESS" && !userData.access) continue;
       if (

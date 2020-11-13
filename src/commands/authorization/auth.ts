@@ -1,21 +1,17 @@
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
-import Command from "..";
+import AuthCommands from ".";
 import Global from "../../models/global";
 import User from "../../models/user";
-import Client from "../../structures/client";
 import embeds from "../../util/embed";
 import { messageQuestion } from "../../util/questions";
 
-export default class AuthCommand extends Command {
+export default class AuthCommand extends AuthCommands {
   cmdName = "auth";
   description = "Authorize yourself to get access to the bot.";
-  groupName = "Authorization";
   aliases = ["authenticate", "authorize"];
-  permission = "EVERYONE";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
     globalData: DocumentType<Global>
@@ -42,7 +38,7 @@ export default class AuthCommand extends Command {
     message.channel.send(
       embeds.normal(
         `Welcome To Jarvis`,
-        `Welcome master ${message.author}. I am **${client.user.username}**, how can I be of assistance?`
+        `Welcome master ${message.author}. I am **${this.client.user.username}**, how can I be of assistance?`
       )
     );
   }

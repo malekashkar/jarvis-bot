@@ -1,5 +1,4 @@
-import Client from "../../structures/client";
-import Command from "..";
+import AdminCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User from "../../models/user";
@@ -7,15 +6,13 @@ import Global from "../../models/global";
 import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 
-export default class PrefixCommand extends Command {
+export default class PrefixCommand extends AdminCommands {
   cmdName = "prefix";
   description = "Set the prefix of the bot.";
-  groupName = "Misc";
   aliases = ["status"];
   permission = "OWNER";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
     globalData: DocumentType<Global>

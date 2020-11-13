@@ -1,24 +1,14 @@
-import Client from "../../structures/client";
-import Command from "..";
-import { DocumentType } from "@typegoose/typegoose";
+import UtilityCommands from ".";
 import { Message, MessageEmbed } from "discord.js";
-import User from "../../models/user";
-import Global from "../../models/global";
 import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 
-export default class EmbedCommand extends Command {
+export default class EmbedCommand extends UtilityCommands {
   cmdName = "embed";
   description = "Send an embed somewhere.";
-  groupName = "Misc";
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     const typeQuestion = await messageQuestion(
       message,
       `Would you like to post an embed in a **server** or **here**?`,
@@ -52,7 +42,7 @@ export default class EmbedCommand extends Command {
       const serverResponse = await message.channel.awaitMessages(
         (x) =>
           x.author.id === message.author.id &&
-          parseInt(x.content) <= client.guilds.cache.size,
+          parseInt(x.content) <= this.client.guilds.cache.size,
         { max: 1, time: 900000, errors: ["time"] }
       );
       if (!serverResponse) return;
@@ -60,8 +50,8 @@ export default class EmbedCommand extends Command {
       if (serverQuestion.deletable) serverQuestion.delete();
       if (serverResponse.first().deletable) serverResponse.first().delete();
 
-      const server = client.guilds.cache.get(
-        client.guilds.cache.array()[
+      const server = this.client.guilds.cache.get(
+        this.client.guilds.cache.array()[
           parseInt(serverResponse.first().content) - 1
         ].id
       );

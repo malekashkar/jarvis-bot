@@ -1,25 +1,19 @@
-import Command from "..";
-import Client from "../../structures/client";
+import AuthCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User, { UserModel } from "../../models/user";
-import Global from "../../models/global";
 import embeds from "../../util/embed";
-import { getSourceMapRange } from "typescript";
 import { getTaggedUser } from "../../util/questions";
 
-export default class DeauthCommand extends Command {
+export default class DeauthCommand extends AuthCommands {
   cmdName = "deauth";
   description = "Remove someone's permission from using the discord bot.";
-  groupName = "Authorization";
   aliases = ["unauthorize", "deauthorize", "unath"];
   permission = "OWNER";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
-    globalData: DocumentType<Global>
   ) {
     const user = await getTaggedUser(
       message,

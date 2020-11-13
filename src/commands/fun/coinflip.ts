@@ -1,23 +1,13 @@
-import Command from "..";
-import Client from "../../structures/client";
-import { DocumentType } from "@typegoose/typegoose";
-import { Guild, Message, MessageAttachment } from "discord.js";
-import User from "../../models/user";
-import Global from "../../models/global";
+import FunCommands from ".";
+import { Message, MessageAttachment } from "discord.js";
 
-export default class CoinflipCommand extends Command {
+export default class CoinflipCommand extends FunCommands {
   cmdName = "coinflip";
   description = "Flip a coin and receive a random side.";
-  groupName = "Fun";
   aliases = ["flip"];
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     const random = ["heads", "tails"][Math.floor(Math.random() * 2)];
 
     await message.channel.send(

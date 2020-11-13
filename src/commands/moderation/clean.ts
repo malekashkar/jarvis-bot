@@ -1,25 +1,14 @@
-import { DocumentType } from "@typegoose/typegoose";
-import { Guild, Message, TextChannel } from "discord.js";
-import Command from "..";
-import Global from "../../models/global";
-import User from "../../models/user";
-import Client from "../../structures/client";
+import { Message, TextChannel } from "discord.js";
+import ModCommands from ".";
 import embeds from "../../util/embed";
-import { getTaggedUser } from "../../util/questions";
 
-export default class CleanCommand extends Command {
+export default class CleanCommand extends ModCommands {
   cmdName = "clean";
   description = "Delete messages from a channel.";
-  groupName = "Moderation";
   aliases = ["purge"];
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     const userQuestion = await message.channel.send(
       embeds.question(
         `Would you like to clear a users messages? Say "no" if not.`

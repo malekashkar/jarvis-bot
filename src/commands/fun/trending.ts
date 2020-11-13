@@ -1,19 +1,16 @@
-import Client from "../../structures/client";
 import { Message } from "discord.js";
-import Command from "..";
+import FunCommands from ".";
 import dotenv from "dotenv";
 import embeds from "../../util/embed";
-import { DocumentType } from "@typegoose/typegoose";
 
 dotenv.config();
 
-export default class TrendingCommand extends Command {
+export default class TrendingCommand extends FunCommands {
   cmdName = "trending";
   description = "Here are the top 10 trending youtube videos.";
-  groupName = "Misc";
   permission = "ACCESS";
 
-  async run(client: Client, message: Message) {
+  async run(message: Message) {
     const params = new URLSearchParams({
       part: `contentDetails`,
       chart: `mostPopular`,

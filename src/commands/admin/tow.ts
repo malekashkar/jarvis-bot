@@ -1,5 +1,5 @@
 import { GoogleSpreadsheet } from "google-spreadsheet";
-import { Client, Message } from "discord.js";
+import { Message } from "discord.js";
 import { ImageAnnotatorClient } from "@google-cloud/vision";
 import moment from "moment";
 import dotenv from "dotenv";
@@ -12,9 +12,8 @@ import {
   uploadImage,
   toTitleCase,
 } from "../../util";
-import settings from "../../settings";
 import embeds from "../../util/embed";
-import Command from "..";
+import AdminCommands from ".";
 import {
   optionReactQuestion,
   confirmator,
@@ -23,14 +22,13 @@ import {
 
 dotenv.config({ path: path.join(__dirname, "..", "..", "..", ".env") });
 
-export default class TowCommand extends Command {
+export default class TowCommand extends AdminCommands {
   cmdName = "tow";
   description =
     "Bad boy I see, you towing people cars now? lmfao man you are cool...";
-  groupName = "Owner";
-  permission = "EVERYONE";
+  permission = "OWNER";
 
-  async run(client: Client, message: Message) {
+  async run(message: Message) {
     let information: Information = {
       trouble_code_1: "",
       tow_distance: "",

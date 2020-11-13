@@ -1,24 +1,14 @@
-import Command from "..";
-import { DocumentType } from "@typegoose/typegoose";
-import Client from "../../structures/client";
-import { Message, MessageFlags, TextChannel, VoiceChannel } from "discord.js";
-import Global from "../../models/global";
-import User from "../../models/user";
+import { Message, TextChannel, VoiceChannel } from "discord.js";
 import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
+import ModCommands from ".";
 
-export default class LockdownCommand extends Command {
+export default class LockdownCommand extends ModCommands {
   cmdName = "lockdown";
   description = "Lockdown a channels or a server.";
-  groupName = "Moderation";
   permission = "ACCESS";
 
-  async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
-  ) {
+  async run(message: Message) {
     if (!message.guild) return;
 
     const typeQuestion = await messageQuestion(

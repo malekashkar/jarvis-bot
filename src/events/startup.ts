@@ -1,16 +1,15 @@
 import { GlobalModel } from "../models/global";
-import Client from "../structures/client";
 import Logger from "../util/logger";
 import Event from ".";
 
 export default class startEvent extends Event {
   name = "ready";
 
-  async handle(client: Client) {
+  async handle() {
     const globalData =
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
-    client.user.setActivity(globalData.status, { type: "WATCHING" });
+    this.client.user.setActivity(globalData.status, { type: "WATCHING" });
     Logger.info("BOT", "The bot has been turned on!");
   }
 }

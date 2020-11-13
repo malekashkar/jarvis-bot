@@ -1,5 +1,4 @@
-import Command from "..";
-import Client from "../../structures/client";
+import ReminderCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import User from "../../models/user";
 import { Message } from "discord.js";
@@ -9,15 +8,13 @@ import { messageQuestion } from "../../util/questions";
 import ms from "ms";
 import { Reminder } from "../../models/user";
 
-export default class RememberCommand extends Command {
+export default class RememberCommand extends ReminderCommands {
   cmdName = "remember";
   description = "Create a new reminder.";
-  groupName = "Reminder";
   aliases = ["rem"];
   permission = "ACCESS";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
   ) {
@@ -84,7 +81,7 @@ export default class RememberCommand extends Command {
             .normal(`Reminder!`, `Reminder: **${reminder.message}**`)
             .addField(
               "Server",
-              client.guilds.resolve(reminder.guildId).name,
+              this.client.guilds.resolve(reminder.guildId).name,
               true
             )
             .addField("Name", reminder.name, true)
@@ -130,7 +127,7 @@ export default class RememberCommand extends Command {
             .normal(`Reminder!`, `Reminder: **${reminder.message}**`)
             .addField(
               "Server",
-              client.guilds.resolve(reminder.guildId).name,
+              this.client.guilds.resolve(reminder.guildId).name,
               true
             )
             .addField("Name", reminder.name, true)
@@ -167,7 +164,7 @@ export default class RememberCommand extends Command {
       const name = reminderNameQuestion.content;
       const msg = msgQuestion.content;
 
-      const guild = client.guilds.cache.array()[parseInt(server) - 1];
+      const guild = this.client.guilds.cache.array()[parseInt(server) - 1];
       if (!guild)
         return message.channel.send(
           embeds.error(

@@ -1,22 +1,14 @@
-import Command from "..";
-import Client from "../../structures/client";
-import { DocumentType } from "@typegoose/typegoose";
-import { Guild, Message, MessageAttachment, MessageEmbed } from "discord.js";
-import User from "../../models/user";
+import FunCommands from ".";
+import { Message, MessageEmbed } from "discord.js";
 import { createCanvas, loadImage, registerFont } from "canvas";
-import Global from "../../models/global";
 
-export default class CreateMemeCommand extends Command {
+export default class CreateMemeCommand extends FunCommands {
   cmdName = "creatememe";
   description = "Create a meme by yourself!";
-  groupName = "Fun";
   permission = "ACCESS";
 
   async run(
-    client: Client,
-    message: Message,
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>
+    message: Message
   ) {
     registerFont("./util/arimo.ttf", { family: "Arimo" });
 

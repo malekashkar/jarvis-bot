@@ -1,5 +1,4 @@
-import Command from "..";
-import Client from "../../structures/client";
+import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message, MessageEmbed, Collection } from "discord.js";
 import User from "../../models/user";
@@ -13,13 +12,11 @@ export interface IGroup {
   descriptions: string[];
 }
 
-export default class DashCommand extends Command {
+export default class DashCommand extends UtilityCommands {
   cmdName = "dash";
   description = "Load up the dashboard menu.";
-  groupName = "Misc";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
     globalData: DocumentType<Global>
@@ -29,7 +26,7 @@ export default class DashCommand extends Command {
       .setColor("RANDOM")
       .setTitle(`Jarvis Dashboard`);
 
-    for (const commandObj of client.commands.array()) {
+    for (const commandObj of this.client.commands.array()) {
       if (!commandObj.groupName) continue;
       if (commandObj.permission === "ACCESS" && !userData.access) continue;
       if (
@@ -92,9 +89,9 @@ export default class DashCommand extends Command {
         commandEmojis.indexOf(reactionCommand.first().emoji.name)
       ];
 
-    client.commands
+    this.client.commands
       .get(command.toLowerCase())
-      .run(client, message, userData, globalData);
+      .run(message, userData, globalData);
   }
 }
 

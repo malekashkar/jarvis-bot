@@ -1,5 +1,4 @@
-import Command from "..";
-import Client from "../../structures/client";
+import UtilityCommands from ".";
 import { Message } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
@@ -8,14 +7,13 @@ import embeds from "../../util/embed";
 
 dotenv.config({ path: path.join(__dirname, "..", "..", "..") });
 
-export default class TranscriptCommand extends Command {
+export default class TranscriptCommand extends UtilityCommands {
   cmdName = "transcript";
   description = "Create a transcript.";
-  groupName = "Misc";
   permission = "ACCESS";
   aliases = ["trans"];
 
-  async run(client: Client, message: Message) {
+  async run(message: Message) {
     const msg = await message.channel.messages.fetch({ limit: 100 });
     const text = Array.from(msg.values())
       .reverse()

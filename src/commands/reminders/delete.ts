@@ -1,19 +1,16 @@
-import Command from "..";
-import Client from "../../structures/client";
+import ReminderCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User from "../../models/user";
 import embeds from "../../util/embed";
 
-export default class DeleteCommand extends Command {
+export default class DeleteCommand extends ReminderCommands {
   cmdName = "delete";
   description = "Delete a reminder.";
-  groupName = "Reminder";
   aliases = ["remove"];
   permission = "ACCESS";
 
   async run(
-    client: Client,
     message: Message,
     userData: DocumentType<User>,
   ) {
