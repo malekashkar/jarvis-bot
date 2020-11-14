@@ -1,5 +1,5 @@
-import Command from "..";
+import Command, { Groups } from "..";
 
 export default abstract class AdminCommands extends Command {
-  groupName = "Administration";
+  groupName: Groups = "Administration";
 }

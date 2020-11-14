@@ -4,6 +4,14 @@ import User from "../models/user";
 import Global from "../models/global";
 import Client from "..";
 
+export type Groups =
+  | "Administration"
+  | "Authorization"
+  | "Fun"
+  | "Moderation"
+  | "Reminders"
+  | "Utility";
+
 export default abstract class Command {
   permission: string;
   disabled = false;
@@ -17,11 +25,10 @@ export default abstract class Command {
 
   abstract cmdName: string;
   abstract description: string;
-  abstract groupName: string;
+  abstract groupName: Groups;
   abstract async run(
     _message: Message,
     _userData?: DocumentType<User>,
     _globalData?: DocumentType<Global>,
-    _command?: string
   ): Promise<Message | void>;
 }

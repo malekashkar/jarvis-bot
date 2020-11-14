@@ -1,9 +1,9 @@
 import { Message } from "discord.js";
-import User, { UserModel } from "../models/user";
+import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import settings from "../settings";
 import Event from ".";
-import { DocumentType } from "@typegoose/typegoose";
+import { permissionCheck } from "../util";
 
 export default class CommandHandler extends Event {
   name = "message";
@@ -32,33 +32,24 @@ export default class CommandHandler extends Event {
       .toLowerCase();
 
     for (const commandObj of this.client.commands.array()) {
+      if (commandObj.disabled) continue;
       if (
-        commandObj.cmdName === command ||
-        commandObj.aliases.includes(command)
+        commandObj.cmdName.toLowerCase() === command.toLowerCase() ||
+        commandObj.aliases
+          .map((x) => x.toLowerCase())
+          .includes(command.toLowerCase())
       ) {
         if (
           commandObj.permission &&
-          !permissionCheck(userData, commandObj.permission)
+          !permissionCheck(
+            userData,
+            commandObj.permission,
+            commandObj.groupName
+          )
         )
           return;
         commandObj.run(message, userData, globalData);
       }
-    }
-
-    function permissionCheck(
-      userData: DocumentType<User>,
-      permissionType: string
-    ) {
-      if (
-        (permissionType.toLowerCase() === "access" && !userData.access) ||
-        (permissionType.toLowerCase() === "access" &&
-          !settings.ownerId.includes(message.author.id)) ||
-        (permissionType.toLowerCase() === "owner" &&
-          !settings.ownerId.includes(message.author.id))
-      )
-        return false;
-
-      return true;
     }
   }
 }

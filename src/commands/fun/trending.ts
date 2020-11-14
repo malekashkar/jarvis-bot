@@ -2,8 +2,25 @@ import { Message } from "discord.js";
 import FunCommands from ".";
 import dotenv from "dotenv";
 import embeds from "../../util/embed";
+import fetch from "node-fetch";
 
 dotenv.config();
+
+interface YoutubeResult {
+  kind?: string;
+  etag?: string;
+  items?: {
+    kind?: string;
+    etag?: string;
+    id?: string;
+    contentDetails?: any;
+  }[];
+  nextPageToken?: string;
+  pageInfo?: {
+    totalResults?: number;
+    resultsPerPage?: number;
+  };
+}
 
 export default class TrendingCommand extends FunCommands {
   cmdName = "trending";
@@ -15,21 +32,29 @@ export default class TrendingCommand extends FunCommands {
       part: `contentDetails`,
       chart: `mostPopular`,
       regionCode: `US`,
-      key: process.env.YOUTUBE_API_KEY,
+      maxResults: (10).toString(),
     });
 
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos/?` + params
+      `https://www.googleapis.com/youtube/v3/videos/?` + params,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.YOUTUBE_API}`,
+        },
+      }
     );
-    const json = await res.json();
-
-    if (!json)
+    const youtubeResponse = (await res.json()) as YoutubeResult;
+    if (!youtubeResponse)
       return message.channel.send(
         embeds.error(`The top 10 youtube videos could not be found!`)
       );
 
-    for (const link of json.links) {
-      message.channel.send(`https://www.youtube.com/watch?v=${link}`);
-    }
+    const description = youtubeResponse.items
+      .map((info, i) => `${i + 1}. https://www.youtube.com/watch?v=${info.id}`)
+      .join("\n");
+
+    return await message.channel.send(
+      embeds.normal(`Youtube Top 10`, description)
+    );
   }
 }

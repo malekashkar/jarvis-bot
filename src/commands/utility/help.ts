@@ -1,9 +1,9 @@
 import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import { Message, MessageEmbed, Collection } from "discord.js";
+import { Message, MessageEmbed, Collection, TextChannel } from "discord.js";
 import User from "../../models/user";
-import { emojis, react } from "../../util";
-import settings from "../../settings";
+import { emojis, permissionCheck, react } from "../../util";
+import Global from "../../models/global";
 import embeds from "../../util/embed";
 
 export interface IGroup {
@@ -11,25 +11,21 @@ export interface IGroup {
   descriptions: string[];
 }
 
-export default class HelpCommand extends UtilityCommands {
+export default class DashCommand extends UtilityCommands {
   cmdName = "help";
   description = "Load up the help menu.";
 
   async run(
     message: Message,
-    userData: DocumentType<User>
+    userData: DocumentType<User>,
+    globalData: DocumentType<Global>
   ) {
     const help: Collection<string, IGroup> = new Collection();
-    const helpEmbed = new MessageEmbed()
-      .setColor("RANDOM")
-      .setTitle(`Jarvis Help Menu`);
-
     for (const commandObj of this.client.commands.array()) {
       if (!commandObj.groupName) continue;
-      if (commandObj.permission === "ACCESS" && !userData.access) continue;
       if (
-        commandObj.permission === "OWNER" &&
-        !settings.ownerId.includes(message.author.id)
+        commandObj.permission &&
+        !permissionCheck(userData, commandObj.permission, commandObj.groupName)
       )
         continue;
 
@@ -45,33 +41,50 @@ export default class HelpCommand extends UtilityCommands {
       }
     }
 
-    for (const [key, value] of Object.entries(help)) {
-      helpEmbed.addField(key, value);
-    }
-
-    const categories = Object.keys(help);
+    let i = 0;
+    const categories = help.keyArray();
     const categoryEmojis = emojis.slice(0, categories.length);
 
-    const helpMessage = await message.channel.send(helpEmbed);
-    await react(helpMessage, categoryEmojis);
+    const dashMessage = await message.channel.send(
+      new MessageEmbed()
+        .setTitle(`Jarvis Help Menu`)
+        .addFields(
+          help.map((value, key) => {
+            return {
+              name: `${categoryEmojis[i++]} ${key}`,
+              value: `${value.commands
+                .map((x) => `${globalData.prefix}${x}`)
+                .join("\n")}`,
+              inline: true,
+            };
+          })
+        )
+        .setColor("RANDOM")
+    );
+    await react(dashMessage, categoryEmojis);
 
-    const categoryReaction = await helpMessage.awaitReactions(
-      (r, u) => emojis.includes(r.emoji.name) && u.id === message.author.id,
+    const categoryReaction = await dashMessage.awaitReactions(
+      (r, u) => u.id === message.author.id && emojis.includes(r.emoji.name),
       { max: 1, time: 900000, errors: ["time"] }
     );
     if (!categoryReaction) return;
+    if (message.channel instanceof TextChannel)
+      await dashMessage.reactions.removeAll();
 
     const chosenCategory =
       categories[categoryEmojis.indexOf(categoryReaction.first().emoji.name)];
     const category = help.get(chosenCategory);
-
-    let description = "";
-    for (let i = 0; i < category.descriptions.length; i++) {
-      description += `${category.commands[i]} ~ ${category.descriptions[i]}\n`;
-    }
-
-    helpMessage.reactions.removeAll();
-    helpMessage.edit(embeds.normal(chosenCategory + " Menu", description));
+    dashMessage.edit(
+      embeds.normal(
+        chosenCategory + " Menu",
+        category.commands
+          .map(
+            (x, i) =>
+              `**${globalData.prefix}${x}** ~ ${category.descriptions[i]}`
+          )
+          .join("\n")
+      )
+    );
   }
 }
 

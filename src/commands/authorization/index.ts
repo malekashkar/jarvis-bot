@@ -1,5 +1,5 @@
-import Command from "..";
+import Command, { Groups } from "..";
 
 export default abstract class AuthCommands extends Command {
-  groupName = "Authorization";
+  groupName: Groups = "Authorization";
 }

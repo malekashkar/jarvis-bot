@@ -76,10 +76,10 @@ export async function messageQuestion(
   );
 
   if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector.first().deletable)
+  if (messageCollector?.first()?.deletable)
     await messageCollector.first().delete();
 
-  return messageCollector.first();
+  return messageCollector?.first();
 }
 
 export async function getTaggedUser(

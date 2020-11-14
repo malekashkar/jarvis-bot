@@ -28,6 +28,9 @@ export default class User {
   @prop()
   access?: boolean;
 
+  @prop({ type: String })
+  modules?: string[];
+
   @prop()
   usedCode?: string;
 

@@ -1,9 +1,8 @@
 import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import { Message, MessageEmbed, Collection } from "discord.js";
+import { Message, MessageEmbed, Collection, TextChannel } from "discord.js";
 import User from "../../models/user";
-import { emojis, react } from "../../util";
-import settings from "../../settings";
+import { emojis, permissionCheck, react } from "../../util";
 import Global from "../../models/global";
 import embeds from "../../util/embed";
 
@@ -22,16 +21,11 @@ export default class DashCommand extends UtilityCommands {
     globalData: DocumentType<Global>
   ) {
     const help: Collection<string, IGroup> = new Collection();
-    const dashboard = new MessageEmbed()
-      .setColor("RANDOM")
-      .setTitle(`Jarvis Dashboard`);
-
     for (const commandObj of this.client.commands.array()) {
       if (!commandObj.groupName) continue;
-      if (commandObj.permission === "ACCESS" && !userData.access) continue;
       if (
-        commandObj.permission === "OWNER" &&
-        !settings.ownerId.includes(message.author.id)
+        commandObj.permission &&
+        !permissionCheck(userData, commandObj.permission, commandObj.groupName)
       )
         continue;
 
@@ -47,36 +41,54 @@ export default class DashCommand extends UtilityCommands {
       }
     }
 
-    for (const [key, value] of Object.entries(help)) {
-      dashboard.addField(key, value);
-    }
-
-    const categories = Object.keys(help);
+    const categories = help.keyArray();
     const categoryEmojis = emojis.slice(0, categories.length);
 
-    const dashMessage = await message.channel.send(dashboard);
+    let i = 0;
+    const categoriesDescription = help.map((value, key) => {
+      return {
+        name: `${categoryEmojis[i++]} ${key}`,
+        value: `${value.commands
+          .map((x) => `${globalData.prefix}${x}`)
+          .join("\n")}`,
+        inline: true,
+      };
+    });
+
+    const dashMessage = await message.channel.send(
+      new MessageEmbed()
+        .setTitle(`Jarvis Dashboard`)
+        .addFields(categoriesDescription)
+        .setColor("RANDOM")
+    );
     await react(dashMessage, categoryEmojis);
 
     const categoryReaction = await dashMessage.awaitReactions(
-      (r, u) => emojis.includes(r.emoji.name) && u.id === message.author.id,
+      (r, u) => u.id === message.author.id && emojis.includes(r.emoji.name),
       { max: 1, time: 900000, errors: ["time"] }
     );
     if (!categoryReaction) return;
+    if (message.channel instanceof TextChannel)
+      dashMessage.reactions.removeAll();
 
     const chosenCategory =
       categories[categoryEmojis.indexOf(categoryReaction.first().emoji.name)];
     const category = help.get(chosenCategory);
 
-    let description = "";
-    for (let i = 0; i < category.descriptions.length; i++) {
-      description += `${category.commands[i]} ~ ${category.descriptions[i]}\n`;
-    }
-
-    dashMessage.reactions.removeAll();
-    dashMessage.edit(embeds.normal(chosenCategory + " Menu", description));
-
     const commandEmojis = emojis.slice(0, category.commands.length);
     await react(dashMessage, commandEmojis);
+
+    dashMessage.edit(
+      embeds.normal(
+        chosenCategory + " Menu",
+        category.commands
+          .map(
+            (x, i) =>
+              `${commandEmojis[i]} **${globalData.prefix}${x}** ~ ${category.descriptions[i]}`
+          )
+          .join("\n")
+      )
+    );
 
     const reactionCommand = await dashMessage.awaitReactions(
       (r, u) => emojis.includes(r.emoji.name) && u.id === message.author.id,

@@ -23,16 +23,18 @@ export default class AuthCommand extends AuthCommands {
     if (!codeQuestion) return;
 
     const code = codeQuestion.content;
-
-    if (!globalData.codes.includes(code))
+    if (!globalData.codes.some((x) => x.code === code))
       return message.channel.send(
         embeds.error(`The code you provided is either invalid or outdated.`)
       );
 
-    globalData.codes = globalData.codes.filter((x) => x !== code);
+    const modules = globalData.codes.find((x) => x.code === code)?.modules;
+
+    globalData.codes = globalData.codes.filter((x) => x.code !== code);
     await globalData.save();
 
     userData.access = true;
+    userData.modules = modules;
     await userData.save();
 
     message.channel.send(
