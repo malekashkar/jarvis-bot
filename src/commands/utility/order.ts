@@ -65,8 +65,8 @@ export default class OrderCommand extends UtilityCommands {
     if (modulesQuestion.deletable) await modulesQuestion.delete();
     if (collector?.first()) {
       const selectedEmojis = modulesQuestion.reactions.cache
-        .filter((x) => x.emoji.name !== "✅" || x.count === 2)
-        .keyArray();
+        .filter((x) => x.count === 2 && x.emoji.name !== "✅")
+        .map((x) => x.emoji.name);
       const selectedModules = selectedEmojis.map(
         (x) => modules[moduleEmojis.indexOf(x)]
       );
@@ -88,32 +88,35 @@ export default class OrderCommand extends UtilityCommands {
           currency: "USD",
         },
       });
-      await charge.save().catch((err) => {
-        message.channel.send(
-          embeds.error(`There was an error saving your checkout!`)
+      try {
+        await charge.save();
+
+        const invoiceMessage = await message.channel.send(
+          embeds
+            .normal(
+              `Invoice Created`,
+              `Please complete the payment here: ${charge.hosted_url}.\n\nSelected Modules:\n${selectedModulesDescription}`
+            )
+            .setFooter(`You must send the payment in within the next hour.`)
         );
-        console.log(err);
-        return;
-      });
 
-      const invoiceMessage = await message.channel.send(
-        embeds
-          .normal(
-            `Invoice Created`,
-            `Please complete the payment here: ${charge.hosted_url}.\n\nSelected Modules:\n${selectedModulesDescription}`
+        await OrderModel.create(
+          new Order(
+            message.author.id,
+            charge.id,
+            invoiceMessage.id,
+            selectedModules as Groups[],
+            new Date(Date.now() + 3600 * 1000)
           )
-          .setFooter(`You must send the payment in within the next hour.`)
-      );
-
-      await OrderModel.create(
-        new Order(
-          message.author.id,
-          charge.id,
-          invoiceMessage.id,
-          selectedModules as Groups[],
-          new Date(Date.now() + 3600 * 1000)
-        )
-      );
+        );
+      } catch (err) {
+        console.log(err);
+        message.channel.send(
+          embeds.error(
+            `There was an error creating your order, please contact administration!`
+          )
+        );
+      }
     }
   }
 }
