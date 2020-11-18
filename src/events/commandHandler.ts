@@ -24,7 +24,6 @@ export default class CommandHandler extends Event {
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
     if (message.content.indexOf(globalData.prefix) !== 0) return;
-    if (message.channel.type === "text") message.delete();
 
     const command = message.content
       .slice(globalData.prefix.length)
@@ -48,6 +47,7 @@ export default class CommandHandler extends Event {
           )
         )
           return;
+        if (message.channel.type === "text") message.delete();
         commandObj.run(message, userData, globalData);
       }
     }
