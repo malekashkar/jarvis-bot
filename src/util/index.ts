@@ -80,20 +80,6 @@ export async function imgurImage(query: string) {
   return imageLink;
 }
 
-export async function uploadImage(image: string) {
-  const response = await fetch(`https://api.imgur.com/3/image`, {
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.IMGUR_API}`,
-    },
-    body: JSON.stringify({
-      image,
-    }),
-    method: "POST",
-  });
-  return ((await response.json()).data.link || image) as string;
-}
-
 export interface ISettings {
   ownerId: string;
   status: string;

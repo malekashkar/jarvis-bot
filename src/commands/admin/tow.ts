@@ -5,13 +5,7 @@ import moment from "moment";
 import dotenv from "dotenv";
 import path from "path";
 
-import {
-  react,
-  emojis,
-  Information,
-  uploadImage,
-  toTitleCase,
-} from "../../util";
+import { react, emojis, Information, toTitleCase } from "../../util";
 import embeds from "../../util/embed";
 import AdminCommands from ".";
 import {
@@ -343,15 +337,11 @@ async function getImagesInformation(
   information: Information
 ) {
   const visionClient = new ImageAnnotatorClient();
-
-  const imgurImages = (
-    await Promise.all(images.map(async (image) => await uploadImage(image)))
-  ).filter((x): x is string => !!x);
-  information.images = imgurImages;
+  information.images = images;
 
   const imageToText = (
     await Promise.all(
-      imgurImages.map(async (image) => {
+      images.map(async (image) => {
         const answer = await visionClient.textDetection(image);
         return answer[0]?.fullTextAnnotation?.text;
       })
