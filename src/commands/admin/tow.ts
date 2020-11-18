@@ -142,7 +142,7 @@ async function submitInformation(information: Information) {
   });
   await doc.loadInfo();
 
-  const sheet = doc.sheetsByIndex[5];
+  const sheet = doc.sheetsById["880124094"];
   sheet.addRow(objectToSheetHeader(information));
 }
 
