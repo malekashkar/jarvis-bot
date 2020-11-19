@@ -9,6 +9,11 @@ export default class CommandHandler extends Event {
   name = "message";
 
   async handle(message: Message) {
+    console.log(
+      message.author.bot &&
+        settings.friday_id !== message.author.id &&
+        settings.vision_id !== message.author.id
+    );
     if (
       message.author.bot &&
       settings.friday_id !== message.author.id &&
