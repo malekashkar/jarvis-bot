@@ -36,11 +36,6 @@ export default class Client extends BaseManager {
     super({
       ...options,
       partials: ["MESSAGE", "CHANNEL", "REACTION"],
-      presence: {
-        activity: {
-          name: settings.status,
-        },
-      },
     });
 
     this.login(process.env.TOKEN);
