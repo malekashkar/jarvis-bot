@@ -3697,9 +3697,9 @@ ts-node@^9.0.0:
     yn "3.1.1"
 
 ts-transformer-keys@^0.4.2:
-  version "0.4.2"
-  resolved "https://registry.yarnpkg.com/ts-transformer-keys/-/ts-transformer-keys-0.4.2.tgz#130d5b116b14d537d26aff2894dca10ac1877b22"
-  integrity sha512-8WVoathKnPIeZbhKuqkBKdWLq1JuiZjT5EmaKobeMI5AHQZIVLI8vyU+1h7e1YiIEIvtBUbmZ12uj2cFbgj5qg==
+  version "0.4.3"
+  resolved "https://registry.yarnpkg.com/ts-transformer-keys/-/ts-transformer-keys-0.4.3.tgz#d62389a40f430c00ef98fb9575fb6778a196e3ed"
+  integrity sha512-pOTLlet1SnAvhKNr9tMAFwuv5283OkUNiq1fXTEK+vrSv+kxU3e2Ijr/UkqyX2vuMmvcNHdpXC31hob7ljH//g==
 
 tsconfig-paths@^3.9.0:
   version "3.9.0"
