@@ -1,18 +1,18 @@
 import { DocumentType } from "@typegoose/typegoose";
 import { DMChannel, Message } from "discord.js";
-import UtilityCommands from ".";
-import User from "../../models/user";
-import { emojis, react } from "../../util";
-import embeds from "../../util/embed";
+import User from "../models/user";
+import { emojis, react } from "../util";
+import embeds from "../util/embed";
 import coinbase from "coinbase-commerce-node";
 import _ from "lodash";
-import Order, { OrderModel } from "../../models/order";
-import Global from "../../models/global";
-import { Groups } from "..";
+import Order, { OrderModel } from "../models/order";
+import Global from "../models/global";
+import Command, { Groups } from ".";
 
-export default class OrderCommand extends UtilityCommands {
+export default class OrderCommand extends Command {
   cmdName = "order";
   description = "Order modules from Jarvis!";
+  groupName: Groups = "Default";
 
   async run(
     message: Message,
@@ -74,8 +74,7 @@ export default class OrderCommand extends UtilityCommands {
         .map((x, i) => `${i + 1}. **${x}**`)
         .join("\n");
 
-      const Charge = coinbase.resources.Charge;
-      const charge = new Charge({
+      const charge = new coinbase.resources.Charge({
         name: message.author.username,
         description: `Order the modules ${selectedModules.join(
           ", "

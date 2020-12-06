@@ -5,6 +5,7 @@ import Global from "../models/global";
 import Client from "..";
 
 export type Groups =
+  | "Default"
   | "Administration"
   | "Authorization"
   | "Fun"
@@ -29,6 +30,6 @@ export default abstract class Command {
   abstract async run(
     _message: Message,
     _userData?: DocumentType<User>,
-    _globalData?: DocumentType<Global>,
+    _globalData?: DocumentType<Global>
   ): Promise<Message | void>;
 }
