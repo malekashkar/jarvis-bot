@@ -1,17 +1,10 @@
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User from "../models/user";
-import Global from "../models/global";
+import Global, { ModulePrices } from "../models/global";
 import Client from "..";
 
-export type Groups =
-  | "Default"
-  | "Administration"
-  | "Authorization"
-  | "Fun"
-  | "Moderation"
-  | "Reminders"
-  | "Utility";
+export type Groups = keyof ModulePrices;
 
 export default abstract class Command {
   permission: string;

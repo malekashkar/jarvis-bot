@@ -12,7 +12,7 @@ import Command, { Groups } from ".";
 export default class OrderCommand extends Command {
   cmdName = "order";
   description = "Order modules from Jarvis!";
-  groupName: Groups = "Default";
+  groupName: Groups = "default";
 
   async run(
     message: Message,
@@ -36,7 +36,7 @@ export default class OrderCommand extends Command {
         embeds.error(`You already have an order open!`)
       );
 
-    const modules: string[] = _.sortedUniq(
+    const modules: Groups[] = _.sortedUniq(
       this.client.commands
         .map((x) => x.groupName)
         .filter((x) => !x.toLowerCase().includes("admin"))
@@ -73,6 +73,9 @@ export default class OrderCommand extends Command {
       const selectedModulesDescription = selectedModules
         .map((x, i) => `${i + 1}. **${x}**`)
         .join("\n");
+      const modulesTotalPrice = selectedModules
+        .map((x) => guildData.modulePrices[x])
+        .reduce((a, b) => a + b, 0);
 
       const charge = new coinbase.resources.Charge({
         name: message.author.username,
@@ -81,9 +84,7 @@ export default class OrderCommand extends Command {
         )} on Jarvis bot.`,
         pricing_type: "fixed_price",
         local_price: {
-          amount: Math.round(
-            selectedModules.length * guildData.modulePrice
-          ).toString(),
+          amount: modulesTotalPrice.toString(),
           currency: "USD",
         },
       });

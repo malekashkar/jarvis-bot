@@ -14,6 +14,31 @@ export class CodeInfo {
   }
 }
 
+export class ModulePrices {
+  @prop({ default: 5 })
+  default: number;
+
+  @prop({ default: 5 })
+  administration: number;
+
+  @prop({ default: 5 })
+  authorization: number;
+
+  @prop({ default: 5 })
+  fun: number;
+
+  @prop({ default: 5 })
+  moderation: number;
+
+  @prop({ default: 5 })
+  reminders: number;
+
+  @prop({ default: 5 })
+  utility: number;
+}
+
+type prices = keyof ModulePrices;
+
 export default class Global {
   @prop({ default: "-" })
   prefix?: string;
@@ -24,8 +49,8 @@ export default class Global {
   @prop({ default: `Default Status` })
   status?: string;
 
-  @prop({ default: 5 })
-  modulePrice?: number;
+  @prop({ default: {} })
+  modulePrices?: ModulePrices;
 }
 
 export const GlobalModel = getModelForClass(Global);

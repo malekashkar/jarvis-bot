@@ -1,5 +1,5 @@
 import Command, { Groups } from "..";
 
 export default abstract class ModCommands extends Command {
-  groupName: Groups = "Moderation";
+  groupName: Groups = "moderation";
 }
