@@ -22,6 +22,17 @@ export async function react(message: Message, reactions: string[]) {
   }
 }
 
+export async function imgurImage(query: string) {
+  const response = await fetch(`https://imgur.com/r/${query}/hot.json`);
+  if (!response.ok) return null;
+
+  const data = await response.json();
+  const randomData = data.data[Math.floor(Math.random() * data.data.length)];
+  const imageLink = `https://i.imgur.com/${randomData.hash}${randomData.ext}`;
+
+  return imageLink;
+}
+
 export const emojis: string[] = [
   "🇦",
   "🇧",
