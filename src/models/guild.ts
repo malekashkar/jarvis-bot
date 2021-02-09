@@ -1,6 +1,6 @@
 import { getModelForClass, prop } from "@typegoose/typegoose";
 
-export class Roles {    
+export class Roles {
   @prop()
   role: string;
 
@@ -12,34 +12,26 @@ export class Roles {
 
   @prop()
   cooldownTime: number;
-}
 
-export class Time {
-  @prop()
-  user: string;
-
-  @prop()
-  channel: string;
-
-  @prop()
-  time: number;
+  constructor(
+    role: string,
+    channels: string[],
+    autorole: boolean,
+    cooldownTime: number
+  ) {
+    this.role = role;
+    this.channels = channels;
+    this.autorole = autorole;
+    this.cooldownTime = cooldownTime;
+  }
 }
 
 export class Guild {
   @prop()
   guildId!: string;
 
-  @prop()
-  roleMessage?: string;
-
   @prop({ type: Roles, default: [] })
   roles?: Roles[];
-
-  @prop({ type: String, default: [] })
-  auth?: string[];
-
-  @prop({ type: Time, default: [] })
-  time?: Time[];
 }
 
 export const GuildModel = getModelForClass(Guild);

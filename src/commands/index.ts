@@ -3,6 +3,7 @@ import { Message } from "discord.js";
 import User from "../models/user";
 import Global, { ModulePrices } from "../models/global";
 import Client from "..";
+import { Guild } from "../models/guild";
 
 export type Groups = keyof ModulePrices;
 
@@ -23,6 +24,7 @@ export default abstract class Command {
   abstract run(
     _message: Message,
     _userData?: DocumentType<User>,
-    _globalData?: DocumentType<Global>
+    _globalData?: DocumentType<Global>,
+    _guildData?: DocumentType<Guild>
   ): Promise<Message | void>;
 }

@@ -1,6 +1,9 @@
 import { ClientEvents } from "discord.js";
 import Client from "..";
+import { ModulePrices } from "../models/global";
+
 export type EventNameType = keyof ClientEvents;
+export type Groups = keyof ModulePrices;
 
 export default abstract class Event {
   disabled = false;
@@ -11,6 +14,6 @@ export default abstract class Event {
   }
   
   abstract eventName: string;
-  abstract group: string;
+  abstract groupName: Groups;
   abstract handle(...args: unknown[]): Promise<void>;
 }

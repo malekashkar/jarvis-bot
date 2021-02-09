@@ -26,4 +26,19 @@ export default class embeds {
       .setDescription(text)
       .setColor("RANDOM");
   }
+
+  static lockdown(type: "SERVER" | "HERE") {
+    return new MessageEmbed()
+      .setTitle(`Operation Complete`)
+      .setDescription(
+        type === "SERVER"
+          ? `The server has been locked down.`
+          : `The channel has been locked down.`
+      )
+      .setColor("RANDOM");
+  }
+
+  static empty() {
+    return new MessageEmbed().setColor("RANDOM");
+  }
 }

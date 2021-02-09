@@ -2,12 +2,12 @@ import { Message } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import settings from "../settings";
-import Event from ".";
+import Event, { Groups } from ".";
 import { permissionCheck } from "../util";
 
 export default class CommandHandler extends Event {
   eventName = "message";
-  group = "default";
+  groupName: Groups = "default";
 
   async handle(message: Message) {
     if (message.author.bot && settings.vision_id !== message.author.id) return;

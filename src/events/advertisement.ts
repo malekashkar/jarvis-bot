@@ -2,14 +2,14 @@ import { Message, TextChannel } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import settings from "../settings";
-import Event from ".";
+import Event, { Groups } from ".";
 import { GuildModel } from "../models/guild";
 import ms from "ms";
 import embeds from "../util/embed";
 
 export default class Advertisement extends Event {
   eventName = "message";
-  group = "friday";
+  groupName: Groups = "friday";
 
   async handle(message: Message) {
     if (message.author.bot && settings.vision_id !== message.author.id) return;

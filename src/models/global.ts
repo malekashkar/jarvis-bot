@@ -35,9 +35,10 @@ export class ModulePrices {
 
   @prop({ default: 5 })
   utility: number;
-}
 
-type prices = keyof ModulePrices;
+  @prop({ default: 5 })
+  friday: number;
+}
 
 export default class Global {
   @prop({ default: "-" })

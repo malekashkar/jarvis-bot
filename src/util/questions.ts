@@ -104,3 +104,49 @@ export async function getTaggedUser(
 
   return messageCollector.first().mentions.users.first();
 }
+
+export async function getTaggedRole(
+  message: Message,
+  question: string,
+  userId?: string
+) {
+  const reactionUserId = userId || message.author.id;
+  const questionMessage = await message.channel.send(embeds.question(question));
+
+  const messageCollector = await message.channel.awaitMessages(
+    (x) =>
+      x.author.id === reactionUserId &&
+      x.mentions.roles &&
+      x.mentions.roles.size,
+    { max: 1, time: 900000, errors: ["time"] }
+  );
+
+  if (questionMessage.deletable) await questionMessage.delete();
+  if (messageCollector.first().deletable)
+    await messageCollector.first().delete();
+
+  return messageCollector.first().mentions.roles.first();
+}
+
+export async function getTaggedChannels(
+  message: Message,
+  question: string,
+  userId?: string
+) {
+  const reactionUserId = userId || message.author.id;
+  const questionMessage = await message.channel.send(embeds.question(question));
+
+  const messageCollector = await message.channel.awaitMessages(
+    (x) =>
+      x.author.id === reactionUserId &&
+      x.mentions.channels &&
+      x.mentions.channels.size,
+    { max: 1, time: 900000, errors: ["time"] }
+  );
+
+  if (questionMessage.deletable) await questionMessage.delete();
+  if (messageCollector.first().deletable)
+    await messageCollector.first().delete();
+
+  return messageCollector.first().mentions.channels;
+}

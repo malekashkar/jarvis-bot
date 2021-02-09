@@ -1,10 +1,10 @@
 import { GlobalModel } from "../models/global";
 import Logger from "../util/logger";
-import Event from ".";
+import Event, { Groups } from ".";
 
 export default class startEvent extends Event {
   eventName = "ready";
-  group = "default";
+  groupName: Groups = "default";
 
   async handle() {
     const globalData =
