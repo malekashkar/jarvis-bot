@@ -3,7 +3,8 @@ import Logger from "../util/logger";
 import Event from ".";
 
 export default class startEvent extends Event {
-  name = "ready";
+  eventName = "ready";
+  group = "default";
 
   async handle() {
     const globalData =

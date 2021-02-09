@@ -76,7 +76,9 @@ export default class Client extends BaseManager {
 
           const globalData =
             (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
-          globalData.codes.push(new CodeInfo(code, infoData.modules as Groups[]));
+          globalData.codes.push(
+            new CodeInfo(code, infoData.modules as Groups[])
+          );
           await globalData.save();
 
           if (user)
@@ -180,9 +182,9 @@ export default class Client extends BaseManager {
 
       try {
         const eventObj: Event = new event(this);
-        if (eventObj && eventObj.name) {
-          this.addListener(eventObj.name, async (...args) =>
-            eventObj.handle.bind(eventObj)(...args, eventObj.name)
+        if (eventObj && eventObj.eventName) {
+          this.addListener(eventObj.eventName, async (...args) =>
+            eventObj.handle.bind(eventObj)(...args, eventObj.eventName)
           );
         }
       } catch (ignored) {}

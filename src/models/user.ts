@@ -21,6 +21,14 @@ export class Reminder {
   }
 }
 
+export class LastAd {
+  @prop()
+  channel: string;
+
+  @prop()
+  nextAdTime: number;
+}
+
 export default class User {
   @prop()
   userId!: string;
@@ -36,6 +44,9 @@ export default class User {
 
   @prop({ type: Reminder })
   reminders?: Reminder[];
+
+  @prop()
+  lastAd?: LastAd;
 }
 
 export const UserModel = getModelForClass(User);
