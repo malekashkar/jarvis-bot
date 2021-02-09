@@ -20,7 +20,7 @@ export default abstract class Command {
   abstract cmdName: string;
   abstract description: string;
   abstract groupName: Groups;
-  abstract async run(
+  abstract run(
     _message: Message,
     _userData?: DocumentType<User>,
     _globalData?: DocumentType<Global>

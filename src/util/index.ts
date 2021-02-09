@@ -1,5 +1,4 @@
 import { Message } from "discord.js";
-import fetch from "node-fetch";
 import dotenv from "dotenv";
 import path from "path";
 import { DocumentType } from "@typegoose/typegoose";
@@ -51,34 +50,6 @@ export const emojis: string[] = [
   "🇾",
   "🇿",
 ];
-
-export interface Information {
-  trouble_code_1: string;
-  tow_distance: string;
-  er_distance: string;
-  completed: string;
-  company: string;
-  call_id: string;
-  payment: string;
-  level: string;
-  color: string;
-  model: string;
-  year: string;
-  make: string;
-  images: string[];
-  apd: string[];
-}
-
-export async function imgurImage(query: string) {
-  const response = await fetch(`https://imgur.com/r/${query}/hot.json`);
-  if (!response.ok) return null;
-
-  const data = await response.json();
-  const randomData = data.data[Math.floor(Math.random() * data.data.length)];
-  const imageLink = `https://i.imgur.com/${randomData.hash}${randomData.ext}`;
-
-  return imageLink;
-}
 
 export interface ISettings {
   ownerId: string;
