@@ -4,7 +4,7 @@ export class Roles {
   @prop()
   role: string;
 
-  @prop()
+  @prop({ type: String })
   channels: string[];
 
   @prop()
