@@ -3,6 +3,7 @@ import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
 
+import express from "express";
 import Event from "./events";
 import Command, { Groups } from "./commands";
 import logger from "./util/logger";
@@ -12,6 +13,13 @@ import Order, { OrderModel } from "./models/order";
 import embeds from "./util/embed";
 import { DocumentType } from "@typegoose/typegoose";
 import { CodeInfo, GlobalModel } from "./models/global";
+
+const app = express();
+const PORT = process.env.PORT || 5000;
+app.listen(PORT, () => logger.info("APP", `App started on port ${PORT}.`));
+app.get("*", (req, res) =>
+  res.send(`<h1>Leave me alone, I'm only here for personal use...</h1>`)
+);
 
 // Load in the .env
 dotenv.config();
