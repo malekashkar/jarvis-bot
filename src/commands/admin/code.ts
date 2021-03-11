@@ -69,11 +69,12 @@ export default class CodeCommand extends AdminCommands {
     if (modulesQuestion.deletable) await modulesQuestion.delete();
     if (collector?.first()) {
       const selectedEmojis = modulesQuestion.reactions.cache
-        .filter((x) => x.emoji.name !== "✅")
+        .filter((x) => x.emoji.name !== "✅" && x.users.cache.has(message.author.id))
         .keyArray();
       const selectedModules = selectedEmojis.map(
         (x) => modules[moduleEmojis.indexOf(x)]
       ) as Groups[];
+    console.log(selectedEmojis, selectedModules)
 
       const code =
         Math.random().toString(36).substring(2, 15) +
