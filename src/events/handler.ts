@@ -1,6 +1,7 @@
 import { Message } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
+import { GuildModel } from "../models/guild";
 import settings from "../settings";
 import Event, { Groups } from ".";
 import { permissionCheck } from "../util";
@@ -18,6 +19,10 @@ export default class CommandHandler extends Event {
 
     const globalData =
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
+
+    const guildData =
+      (await GuildModel.findOne({ guildId: message.guild.id })) ||
+      (await GuildModel.create({ guildId: message.guild.id}));
 
     if (message.content.indexOf(globalData.prefix) === 0) {
       const command = message.content
@@ -43,7 +48,7 @@ export default class CommandHandler extends Event {
           )
             return;
           if (message.channel.type === "text") message.delete();
-          commandObj.run(message, userData, globalData);
+          commandObj.run(message, userData, globalData, guildData);
         }
       }
     }
