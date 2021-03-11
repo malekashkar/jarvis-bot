@@ -78,10 +78,12 @@ export function permissionCheck(
 ) {
   if (
     permissionType.toLowerCase() === "access" &&
-    !userData.access &&
-    !userData.modules
+    (
+      !userData.access ||
+      !userData.modules
       .map((x) => x.toLowerCase())
-      .includes(module.toLowerCase()) &&
+      .includes(module.toLowerCase())
+    ) &&
     !settings.ownerId.includes(userData.userId)
   )
     return false;
