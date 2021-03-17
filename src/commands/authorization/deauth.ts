@@ -13,6 +13,7 @@ export default class DeauthCommand extends AuthCommands {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
   ) {
     const user = await getTaggedUser(

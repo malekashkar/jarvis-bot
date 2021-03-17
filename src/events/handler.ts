@@ -1,4 +1,4 @@
-import { Guild, Message } from "discord.js";
+import { Message } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import { GuildModel, Guild as DbGuild } from "../models/guild";
@@ -29,10 +29,12 @@ export default class CommandHandler extends Event {
     }
 
     if (message.content.indexOf(globalData.prefix) === 0) {
-      const command = message.content
+      const args = message.content
         .slice(globalData.prefix.length)
         .trim()
-        .toLowerCase();
+        .replace(/ /g, "\n")
+        .split(/\n+/g);
+      const command = args.shift().toLowerCase();
 
       for (const commandObj of this.client.commands.array()) {
         if (commandObj.disabled) continue;
@@ -52,7 +54,7 @@ export default class CommandHandler extends Event {
           )
             return;
           if (message.channel.type === "text") message.delete();
-          commandObj.run(message, userData, globalData, guildData);
+          commandObj.run(message, args, userData, globalData, guildData);
         }
       }
     }

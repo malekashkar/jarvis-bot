@@ -1,6 +1,6 @@
 import { Message } from "discord.js";
 import embeds from "./embed";
-import { emojis as emojiList, react } from "./index";
+import { emojis as emojiList } from "./index";
 
 export async function confirmator(
   message: Message,
@@ -11,8 +11,9 @@ export async function confirmator(
   const questionMessage = await message.channel.send(
     embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)
   );
-
-  await react(questionMessage, ["✅", "❎"]);
+  for (const emoji of ["✅", "❎"]) {
+    await questionMessage.react(emoji);
+  }
 
   const reactionCollector = await questionMessage.awaitReactions(
     (r, u) =>
@@ -45,8 +46,9 @@ export async function optionReactQuestion(
   const questionMessage = await message.channel.send(
     embeds.question(question + `\n\n${questionOptions.join("\n")}`)
   );
-
-  await react(questionMessage, emojis);
+  for (const emoji of emojis) {
+    await questionMessage.react(emoji);
+  }
 
   const reactionCollector = await questionMessage.awaitReactions(
     (r, u) => u.id === reactionUserId && emojis.includes(r.emoji.name),

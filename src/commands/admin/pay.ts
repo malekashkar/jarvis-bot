@@ -2,21 +2,15 @@ import { Message } from "discord.js";
 import AdminCommands from ".";
 import coinbase from "coinbase-commerce-node";
 import embeds from "../../util/embed";
-import { confirmator, messageQuestion } from "../../util/questions";
+import { confirmator } from "../../util/questions";
 
 export default class PayCommand extends AdminCommands {
   cmdName = "pay";
   description = "Create a new invoice for a payment.";
   permission = "OWNER";
 
-  async run(message: Message) {
-    const priceQuestion = await messageQuestion(
-      message,
-      `How much should the invoice be?`
-    );
-    const price = !isNaN(parseInt(priceQuestion.content))
-      ? parseInt(priceQuestion.content)
-      : null;
+  async run(message: Message, args: string[]) {
+    const price = !isNaN(parseInt(args[0])) ? parseInt(args[0]) : null;
     if (!price)
       return message.channel.send(
         embeds.error(`Please provide a number value for the price!`)

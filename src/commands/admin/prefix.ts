@@ -3,7 +3,6 @@ import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User from "../../models/user";
 import Global from "../../models/global";
-import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 
 export default class PrefixCommand extends AdminCommands {
@@ -14,16 +13,15 @@ export default class PrefixCommand extends AdminCommands {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
     globalData: DocumentType<Global>
   ) {
-    const prefixQuestion = await messageQuestion(
-      message,
-      `What would you like the new prefix to be?`
-    );
-    if (!prefixQuestion) return;
-
-    const prefix = prefixQuestion.content;
+    const prefix = args[0]?.toLowerCase();
+    if (!prefix)
+      return message.channel.send(
+        embeds.error(`Please provide the prefix you would like to change to.`)
+      );
 
     globalData.prefix = prefix;
     await globalData.save();

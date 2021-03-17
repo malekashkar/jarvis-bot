@@ -2,7 +2,7 @@ import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Message, MessageEmbed, Collection, TextChannel } from "discord.js";
 import User from "../../models/user";
-import { emojis, permissionCheck, react } from "../../util";
+import { emojis, permissionCheck } from "../../util";
 import Global from "../../models/global";
 import embeds from "../../util/embed";
 
@@ -17,6 +17,7 @@ export default class DashCommand extends UtilityCommands {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
     globalData: DocumentType<Global>
   ) {
@@ -61,7 +62,9 @@ export default class DashCommand extends UtilityCommands {
         )
         .setColor("RANDOM")
     );
-    await react(dashMessage, categoryEmojis);
+    for (const emoji of categoryEmojis) {
+      await dashMessage.react(emoji);
+    }
 
     const categoryReaction = await dashMessage.awaitReactions(
       (r, u) => u.id === message.author.id && emojis.includes(r.emoji.name),

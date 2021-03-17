@@ -1,6 +1,5 @@
 import ModCommands from ".";
 import { Message } from "discord.js";
-import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 
 export default class PermsCommand extends ModCommands {
@@ -8,58 +7,59 @@ export default class PermsCommand extends ModCommands {
   description = "Give or take a role from a user in a server.";
   permission = "ACCESS";
 
-  async run(message: Message) {
-    const typeQuestion = await messageQuestion(
-      message,
-      `Would you like to **set** or **remove** a permission?`,
-      message.author.id,
-      ["set", "remove"]
-    );
-    if (!typeQuestion) return;
+  async run(message: Message, args: string[]) {
+    const option =
+      args[0]?.toLowerCase() === "set"
+        ? "set"
+        : args[0]?.toLowerCase() === "remove"
+        ? "remove"
+        : null;
+    if (!option)
+      return message.channel.send(
+        embeds.error(`Please provide **set/remove** as your first argument!`)
+      );
+    args.shift();
 
-    const option = typeQuestion.content;
+    const serverNumber = !isNaN(parseInt(args[0])) ? parseInt(args[0]) : null;
+    if (!serverNumber)
+      return message.channel.send(
+        embeds.error(
+          `Please provide the server number you would like to alter permisisons in.`
+        )
+      );
+    args.shift();
 
-    const serverQuestion = await message.channel.send(
-      embeds.question(`What is the number of the server?`)
-    );
-    const serverResponse = await message.channel.awaitMessages(
-      (x) =>
-        x.author.id === message.author.id &&
-        parseInt(x.content) <= this.client.guilds.cache.size,
-      { max: 1, time: 900000, errors: ["time"] }
-    );
-
-    if (serverQuestion.deletable) serverQuestion.delete();
-    if (serverResponse) serverResponse.first().delete();
-    const server = this.client.guilds.cache.get(
-      this.client.guilds.cache.array()[
-        parseInt(serverResponse.first().content) - 1
-      ].id
-    );
+    const server = this.client.guilds.cache.array()[serverNumber - 1];
     if (!server)
       return message.channel.send(
         embeds.error(`There is no server with the provided number!`)
       );
 
-    const userId = await messageQuestion(
-      message,
-      `What is the ID of the discord user?`
-    );
-    if (!userId) return;
+    const userId = args[0];
+    if (!userId)
+      return message.channel.send(
+        embeds.error(
+          `Please provide the ID of the user you would like to alter permissions for.`
+        )
+      );
+    args.shift();
 
-    const member = server.members.cache.get(userId.content);
+    const member = await server.members.fetch(userId);
     if (!member)
       return message.channel.send(
         embeds.error(`There is no member with that provided ID!`)
       );
 
-    const roleName = await messageQuestion(
-      message,
-      `What is the name of the role you would like to use?`
-    );
-    if (!roleName) return;
+    const roleName = args[0];
+    if (!roleName)
+      return message.channel.send(
+        embeds.error(
+          `Please provide the name of the role you would like to give the member.`
+        )
+      );
+    args.shift();
 
-    const role = server.roles.cache.find((x) => x.name === roleName.content);
+    const role = server.roles.cache.find((x) => x.name === roleName);
     if (!role)
       return message.channel.send(
         embeds.error(`There is no role with the provided name!`)
@@ -69,13 +69,13 @@ export default class PermsCommand extends ModCommands {
         embeds.error(`I don't have permissions to manage roles in that server!`)
       );
 
-    if (option === "set") member.roles.add(role);
-    else member.roles.remove(role);
+    if (option === "set") await member.roles.add(role);
+    else await member.roles.remove(role);
 
-    message.channel.send(
+    return message.channel.send(
       embeds
         .normal(
-          `Role ${option === "set" ? `Added` : `Removed`}`,
+          `Role` + option === "set" ? `Added` : `Removed`,
           `Role Name: ${role.name}`
         )
         .setThumbnail(member.user.avatarURL())

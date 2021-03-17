@@ -3,10 +3,9 @@ import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import Global, { CodeInfo } from "../../models/global";
 import User from "../../models/user";
-import { messageQuestion } from "../../util/questions";
 import embeds from "../../util/embed";
 import _ from "lodash";
-import { emojis, react } from "../../util";
+import { emojis } from "../../util";
 import { Groups } from "..";
 
 export default class CodeCommand extends AdminCommands {
@@ -17,28 +16,22 @@ export default class CodeCommand extends AdminCommands {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
     globalData: DocumentType<Global>
   ) {
-    const typeQuestion = await messageQuestion(
-      message,
-      `Would you like to **create** a code or **list** the codes?`,
-      message.author.id,
-      ["list", "create"]
-    );
-    const option = typeQuestion?.content;
-
-    if (!option || option === "list")
-      return await message.channel.send(
-        embeds.normal(
-          `Available Codes`,
-          globalData.codes
-            .map(
-              (x, i) => `${i + 1}. **${x.code}** ~ (${x.modules.join(", ")})`
-            )
-            .join("\n")
-        )
-      );
+    const option =
+      args[0].toLowerCase() === "list"
+        ? "list"
+        : args[0].toLowerCase() === "create"
+        ? "create"
+        : null;
+    if (option === "list" || !option) {
+      const codes = globalData.codes
+        .map((x, i) => `${i + 1}. **${x.code}** ~ (${x.modules.join(", ")})`)
+        .join("\n");
+      return message.channel.send(embeds.normal(`Available Codes`, codes));
+    }
 
     const modules: string[] = _.sortedUniq(
       this.client.commands
@@ -55,8 +48,9 @@ export default class CodeCommand extends AdminCommands {
         `Which modules would you like to provide?\n\n${modulesDescription}`
       )
     );
-    await react(modulesQuestion, moduleEmojis.concat("✅"));
-
+    for (const emoji of moduleEmojis.concat("✅")) {
+      await modulesQuestion.react(emoji);
+    }
     const collector = await modulesQuestion.awaitReactions(
       (r, u) => u.id === message.author.id && r.emoji.name === "✅",
       {
@@ -69,7 +63,9 @@ export default class CodeCommand extends AdminCommands {
     if (modulesQuestion.deletable) await modulesQuestion.delete();
     if (collector?.first()) {
       const selectedEmojis = modulesQuestion.reactions.cache
-        .filter((x) => x.emoji.name !== "✅" && x.users.cache.has(message.author.id))
+        .filter(
+          (x) => x.emoji.name !== "✅" && x.users.cache.has(message.author.id)
+        )
         .keyArray();
       const selectedModules = selectedEmojis.map(
         (x) => modules[moduleEmojis.indexOf(x)]

@@ -1,4 +1,3 @@
-import { Message } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
 import { DocumentType } from "@typegoose/typegoose";
@@ -11,16 +10,6 @@ dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
 export function toTitleCase(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
-
-export async function react(message: Message, reactions: string[]) {
-  for (const r of reactions) {
-    if (
-      !message.deleted &&
-      !message.reactions.cache.map((x) => x.me && x.emoji.name).includes(r)
-    )
-      await message.react(r);
-  }
 }
 
 export async function imgurImage(query: string) {

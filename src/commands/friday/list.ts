@@ -14,6 +14,7 @@ export default class ListCommand extends FridayCommands {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
     globalData: DocumentType<Global>,
     guildData: DocumentType<Guild>

@@ -23,6 +23,7 @@ export default abstract class Command {
   abstract groupName: Groups;
   abstract run(
     _message: Message,
+    _args: string[],
     _userData?: DocumentType<User>,
     _globalData?: DocumentType<Global>,
     _guildData?: DocumentType<Guild>

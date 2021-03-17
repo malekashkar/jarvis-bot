@@ -9,7 +9,7 @@ export default class ReminderCommand extends ReminderCommands {
   description = "Check a reminder or get a list of them.";
   permission = "ACCESS";
 
-  async run(message: Message, userData: DocumentType<User>) {
+  async run(message: Message, args: string[], userData: DocumentType<User>) {
     const question = await message.channel.send(
       embeds.question(
         `Say **list** to list out the reminders or provide a **number** to get a specific reminder.`

@@ -1,7 +1,7 @@
 import { DocumentType } from "@typegoose/typegoose";
 import { DMChannel, Message } from "discord.js";
 import User from "../models/user";
-import { emojis, react } from "../util";
+import { emojis } from "../util";
 import embeds from "../util/embed";
 import coinbase from "coinbase-commerce-node";
 import _ from "lodash";
@@ -16,6 +16,7 @@ export default class OrderCommand extends Command {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
     guildData: DocumentType<Global>
   ) {
@@ -51,7 +52,9 @@ export default class OrderCommand extends Command {
         `Which modules would you like to install?\n\n${modulesDescription}`
       )
     );
-    await react(modulesQuestion, moduleEmojis.concat("✅"));
+    for (const emoji of moduleEmojis.concat("✅")) {
+      await modulesQuestion.react(emoji);
+    }
 
     const collector = await modulesQuestion.awaitReactions(
       (r, u) => u.id === message.author.id && r.emoji.name === "✅",

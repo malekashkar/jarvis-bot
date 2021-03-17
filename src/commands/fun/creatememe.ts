@@ -10,7 +10,7 @@ export default class CreateMemeCommand extends FunCommands {
   async run(
     message: Message
   ) {
-    registerFont("./util/arimo.ttf", { family: "Arimo" });
+    registerFont("./src/util/arimo.ttf", { family: "Arimo" });
 
     function place(height: number, choice: string) {
       if (choice === "top+") return height / 12;

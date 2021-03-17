@@ -3,7 +3,6 @@ import { DocumentType } from "@typegoose/typegoose";
 import User from "../../models/user";
 import { Message } from "discord.js";
 import embeds from "../../util/embed";
-import { react } from "../../util";
 import { messageQuestion } from "../../util/questions";
 import ms from "ms";
 import { Reminder } from "../../models/user";
@@ -14,17 +13,16 @@ export default class RememberCommand extends ReminderCommands {
   aliases = ["rem"];
   permission = "ACCESS";
 
-  async run(
-    message: Message,
-    userData: DocumentType<User>,
-  ) {
+  async run(message: Message, args: string[], userData: DocumentType<User>) {
     const typeQuestion = await message.channel.send(
       embeds.normal(
         "Reminder Settings",
         `Please select one of the emojis below!\n\n🕐 Clock\n⏱️ Stopwatch\n🔒 Permanent`
       )
     );
-    await react(typeQuestion, ["🕐", "⏱️", "🔒"]);
+    for (const emoji of ["🕐", "⏱️", "🔒"]) {
+      await typeQuestion.react(emoji);
+    }
 
     const reactionCollector = await typeQuestion.awaitReactions(
       (r, u) =>

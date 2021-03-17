@@ -12,6 +12,7 @@ export default class DeleteCommand extends ReminderCommands {
 
   async run(
     message: Message,
+    args: string[],
     userData: DocumentType<User>,
   ) {
     const question = await message.channel.send(
