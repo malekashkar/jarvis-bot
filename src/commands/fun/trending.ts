@@ -28,18 +28,16 @@ export default class TrendingCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(message: Message) {
-    const params = new URLSearchParams({
-      part: `contentDetails`,
-      chart: `mostPopular`,
-      regionCode: `US`,
-      maxResults: (10).toString(),
-    });
+    return message.channel.send(
+      embeds.error(`Command currently disabled due to YouTube API being dumb!`)
+    );
 
     const res = await fetch(
-      `https://www.googleapis.com/youtube/v3/videos/?` + params,
+      `https://youtube.googleapis.com/youtube/v3/videos?part=contentDetails&chart=mostPopular&maxResults=10&regionCode=US&key=${process.env.YOUTUBE_API}`,
       {
         headers: {
           Authorization: `Bearer ${process.env.YOUTUBE_API}`,
+          Accept: "application/json",
         },
       }
     );
@@ -48,7 +46,6 @@ export default class TrendingCommand extends FunCommands {
       return message.channel.send(
         embeds.error(`The top 10 youtube videos could not be found!`)
       );
-
     const description = youtubeResponse.items
       .map((info, i) => `${i + 1}. https://www.youtube.com/watch?v=${info.id}`)
       .join("\n");

@@ -1,10 +1,11 @@
-import { Message } from "discord.js";
+import { Guild, Message } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
-import { GuildModel } from "../models/guild";
+import { GuildModel, Guild as DbGuild } from "../models/guild";
 import settings from "../settings";
 import Event, { Groups } from ".";
 import { permissionCheck } from "../util";
+import { DocumentType } from "@typegoose/typegoose";
 
 export default class CommandHandler extends Event {
   eventName = "message";
@@ -20,9 +21,12 @@ export default class CommandHandler extends Event {
     const globalData =
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
-    const guildData =
-      (await GuildModel.findOne({ guildId: message.guild.id })) ||
-      (await GuildModel.create({ guildId: message.guild.id}));
+    let guildData: DocumentType<DbGuild>;
+    if (message.guild) {
+      guildData =
+        (await GuildModel.findOne({ guildId: message.guild.id })) ||
+        (await GuildModel.create({ guildId: message.guild.id }));
+    }
 
     if (message.content.indexOf(globalData.prefix) === 0) {
       const command = message.content

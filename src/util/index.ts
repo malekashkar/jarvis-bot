@@ -5,6 +5,7 @@ import { DocumentType } from "@typegoose/typegoose";
 import User from "../models/user";
 import { Groups } from "../commands";
 import settings from "../settings";
+import fetch from "node-fetch";
 
 dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
@@ -78,12 +79,10 @@ export function permissionCheck(
 ) {
   if (
     permissionType.toLowerCase() === "access" &&
-    (
-      !userData.access ||
+    (!userData.access ||
       !userData.modules
-      .map((x) => x.toLowerCase())
-      .includes(module.toLowerCase())
-    ) &&
+        .map((x) => x.toLowerCase())
+        .includes(module.toLowerCase())) &&
     !settings.ownerId.includes(userData.userId)
   )
     return false;

@@ -74,7 +74,6 @@ export default class CodeCommand extends AdminCommands {
       const selectedModules = selectedEmojis.map(
         (x) => modules[moduleEmojis.indexOf(x)]
       ) as Groups[];
-    console.log(selectedEmojis, selectedModules)
 
       const code =
         Math.random().toString(36).substring(2, 15) +
