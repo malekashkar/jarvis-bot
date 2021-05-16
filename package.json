@@ -12,7 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "@typegoose/typegoose": "^7.4.1",
+    "@typegoose/typegoose": "^7.6.0",
     "@types/coinbase-commerce-node": "^1.0.5",
     "@types/express": "^4.17.11",
     "@types/lodash": "^4.14.165",
@@ -23,12 +23,12 @@
     "canvas": "^2.6.1",
     "chalk": "^4.1.0",
     "coinbase-commerce-node": "^1.0.4",
-    "discord.js": "^12.2.0",
+    "discord.js": "^12.5.3",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "lodash": "^4.17.20",
     "moment": "^2.27.0",
-    "mongoose": "^5.10.9",
+    "mongoose": "5.10.18",
     "ms": "^2.1.2",
     "node-fetch": "^2.6.0",
     "typescript": "^4.1.5"

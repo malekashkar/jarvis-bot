@@ -3,7 +3,7 @@ import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import User, { UserModel } from "../../models/user";
 import embeds from "../../util/embed";
-import { getTaggedUser } from "../../util/questions";
+import { getTaggedUsers } from "../../util/questions";
 
 export default class DeauthCommand extends AuthCommands {
   cmdName = "deauth";
@@ -11,17 +11,14 @@ export default class DeauthCommand extends AuthCommands {
   aliases = ["unauthorize", "deauthorize", "unath"];
   permission = "OWNER";
 
-  async run(
-    message: Message,
-    args: string[],
-    userData: DocumentType<User>,
-  ) {
-    const user = await getTaggedUser(
+  async run(message: Message, args: string[], userData: DocumentType<User>) {
+    const users = await getTaggedUsers(
       message,
       `Who would you like to deauth? Tag them!`
     );
-    if (!user) return;
+    if (!users) return;
 
+    const user = users.first();
     userData = await UserModel.findById(user.id);
     if (!userData || !userData.access)
       return message.channel.send(

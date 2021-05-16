@@ -7,12 +7,20 @@ import express from "express";
 import Event from "./events";
 import Command, { Groups } from "./commands";
 import logger from "./util/logger";
-import { Collection, Client as BaseManager, ClientOptions } from "discord.js";
+import {
+  Collection,
+  Client as BaseManager,
+  ClientOptions,
+  TextChannel,
+  User,
+} from "discord.js";
 import coinbase, { Client as CoinbaseClient } from "coinbase-commerce-node";
 import Order, { OrderModel } from "./models/order";
 import embeds from "./util/embed";
 import { DocumentType } from "@typegoose/typegoose";
 import { CodeInfo, GlobalModel } from "./models/global";
+import { Giveaway, GiveawayModel } from "./models/giveaway";
+import moment from "moment";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -33,13 +41,22 @@ export default class Client extends BaseManager {
     super({
       ...options,
       partials: ["MESSAGE", "CHANNEL", "REACTION"],
+      ws: {
+        intents: [
+          "GUILDS",
+          "GUILD_MESSAGES",
+          "GUILD_MESSAGE_REACTIONS",
+          "GUILD_VOICE_STATES",
+        ],
+      },
     });
 
     this.login(process.env.TOKEN);
+    this.loadDatabase();
     this.loadCommands();
     this.loadEvents();
-    this.loadDatabase();
 
+    this.giveawayInterval();
     this.loadCoinbase();
   }
 
@@ -51,8 +68,9 @@ export default class Client extends BaseManager {
         useUnifiedTopology: true,
         useCreateIndex: true,
         connectTimeoutMS: 60000,
-        socketTimeoutMS: 60000,
+        socketTimeoutMS: 30000,
         serverSelectionTimeoutMS: 60000,
+        keepAlive: true,
       },
       (err: Error) => {
         if (err) logger.error("DB", err.toString());
@@ -62,9 +80,6 @@ export default class Client extends BaseManager {
   }
 
   loadCoinbase() {
-    // If invoice found: DM user we are waiting for 3 confirmations.
-    // If invoice hits 3 confirmations: Delete invoice message, dm user he paid and received the modules, delete the document, and give the user the modules access.
-
     const charges = coinbase.resources.Charge;
 
     setInterval(async () => {
@@ -124,6 +139,159 @@ export default class Client extends BaseManager {
             .catch(() => undefined);
       });
     }, 60 * 1000);
+  }
+
+  async giveawayInterval() {
+    this.setInterval(async () => {
+      const ongoingGiveaways = GiveawayModel.find({
+        ended: false,
+        endsAt: { $gt: new Date() },
+      }).cursor();
+      ongoingGiveaways.on("data", async (giveaway: DocumentType<Giveaway>) => {
+        const guild = await this.guilds.fetch(giveaway.location.guildId);
+        if (guild) {
+          const channel = guild.channels.resolve(
+            giveaway.location.channelId
+          ) as TextChannel;
+          if (channel) {
+            try {
+              const message = await channel.messages.fetch(
+                giveaway.location.messageId
+              );
+              if (message) {
+                const giveawayEmbed = embeds
+                  .empty()
+                  .addField(
+                    `Information`,
+                    `🎁 **Prize** ${giveaway.prize}\n${
+                      giveaway.cappedEntries
+                        ? `📈 **Capped Entries** ${giveaway.cappedEntries}\n`
+                        : ``
+                    }👥 **Winners** ${giveaway.winners}\n📅 **Ends ${moment(
+                      giveaway.endsAt
+                    ).fromNow()}**`,
+                    true
+                  );
+
+                if (
+                  giveaway.requirements.messageRequirement ||
+                  giveaway.requirements.roleRequirements.length
+                ) {
+                  giveawayEmbed.addField(
+                    `Requirements`,
+                    `${
+                      giveaway.requirements.messageRequirement
+                        ? `💬 **Message Requirement** ${giveaway.requirements.messageRequirement}\n`
+                        : ``
+                    }${
+                      giveaway.requirements.roleRequirements.length
+                        ? `⚙️ **Role Requirements** ${giveaway.requirements.roleRequirements.map(
+                            (x) => `<@&${x}>`
+                          )}`
+                        : ``
+                    }`,
+                    true
+                  );
+                }
+
+                if (giveaway.requirements.multipliers.length) {
+                  giveawayEmbed.addField(
+                    `Role Multipliers`,
+                    `${giveaway.requirements.multipliers
+                      .map(
+                        (x, i) => `${i + 1}. <@&${x.roleId}> - ${x.multiplier}x`
+                      )
+                      .join("\n")}`,
+                    true
+                  );
+                }
+
+                await message.edit(`🎉 **__GIVEAWAY__**`, giveawayEmbed);
+              }
+            } catch (e) {
+              console.log(e);
+              giveaway.ended = true;
+              await giveaway.save();
+            }
+          }
+        }
+      });
+
+      const endedGiveaways = GiveawayModel.find({
+        ended: false,
+        endsAt: { $lte: new Date() },
+      }).cursor();
+      endedGiveaways.on("data", async (giveaway: DocumentType<Giveaway>) => {
+        let giveawayWinners: User[] = [];
+
+        giveaway.ended = true;
+        await giveaway.save();
+
+        const guild = await this.guilds.fetch(giveaway.location.guildId);
+        if (guild) {
+          const channel = guild.channels.resolve(
+            giveaway.location.channelId
+          ) as TextChannel;
+          if (channel) {
+            const message = await channel.messages.fetch(
+              giveaway.location.messageId
+            );
+            if (message) {
+              let entries = message.reactions?.cache
+                .get("🎉")
+                ?.users?.cache?.filter((x) => !x.bot)
+                .array();
+              if (entries?.length) {
+                let possibleWinners: string[] = entries.map((x) => x.id);
+
+                if (giveaway?.requirements?.multipliers?.length) {
+                  for (const multiplier of giveaway.requirements.multipliers) {
+                    for (const user of entries) {
+                      const member = await guild.members.fetch(user);
+                      if (member?.roles?.cache?.has(multiplier.roleId)) {
+                        for (let i = 0; i < multiplier.multiplier; i++) {
+                          possibleWinners.push(user.id);
+                        }
+                      }
+                    }
+                  }
+                }
+
+                for (let i = 0; i < giveaway.winners; i++) {
+                  const winner =
+                    entries[Math.floor(Math.random() * entries.length)];
+                  entries = entries.filter((x) => x !== winner);
+                  giveawayWinners.push(winner);
+                }
+
+                await message.delete();
+                if (giveawayWinners.length) {
+                  await channel.send(
+                    `${giveawayWinners.map((x) => x.toString()).join(", ")}`,
+                    embeds.normal(
+                      `Giveaway Ended`,
+                      `🎁 **Prize** ${
+                        giveaway.prize
+                      }\n👥 **Winners** ${giveawayWinners
+                        .map((x) => x.toString())
+                        .join(", ")}`
+                    )
+                  );
+                }
+              } else {
+                await message.delete();
+                await channel.send(
+                  embeds.normal(
+                    `Giveaway Ended`,
+                    `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** Not enough people entered the giveaway!`
+                  )
+                );
+              }
+            }
+          }
+        }
+      });
+    }, 10e3);
   }
 
   loadCommands(directory: string = path.join(__dirname, "commands")) {

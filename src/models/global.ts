@@ -38,6 +38,9 @@ export class ModulePrices {
 
   @prop({ default: 5 })
   friday: number;
+
+  @prop({ default: 5 })
+  giveaways: number;
 }
 
 export default class Global {

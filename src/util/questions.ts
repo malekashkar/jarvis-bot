@@ -24,13 +24,7 @@ export async function confirmator(
 
   if (questionMessage.deletable) await questionMessage.delete();
 
-  if (
-    !reactionCollector ||
-    !reactionCollector.size ||
-    !reactionCollector.first() ||
-    reactionCollector.first().emoji.name === "❎"
-  )
-    return false;
+  if (reactionCollector?.first()?.emoji?.name === "❎") return false;
   return true;
 }
 
@@ -84,7 +78,7 @@ export async function messageQuestion(
   return messageCollector?.first();
 }
 
-export async function getTaggedUser(
+export async function getTaggedUsers(
   message: Message,
   question: string,
   userId?: string
@@ -104,10 +98,10 @@ export async function getTaggedUser(
   if (messageCollector.first().deletable)
     await messageCollector.first().delete();
 
-  return messageCollector.first().mentions.users.first();
+  return messageCollector.first().mentions.users;
 }
 
-export async function getTaggedRole(
+export async function getTaggedRoles(
   message: Message,
   question: string,
   userId?: string
@@ -127,7 +121,7 @@ export async function getTaggedRole(
   if (messageCollector.first().deletable)
     await messageCollector.first().delete();
 
-  return messageCollector.first().mentions.roles.first();
+  return messageCollector.first().mentions.roles;
 }
 
 export async function getTaggedChannels(

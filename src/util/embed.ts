@@ -1,4 +1,5 @@
 import { MessageEmbed } from "discord.js";
+import settings from "../settings";
 
 export default class embeds {
   static image(image: string, color: string) {
@@ -16,7 +17,7 @@ export default class embeds {
     return new MessageEmbed()
       .setTitle(title)
       .setDescription(text)
-      .setColor("RANDOM");
+      .setColor(settings.color);
   }
 
   static question(text: string) {
@@ -24,7 +25,7 @@ export default class embeds {
       .setTitle(`Answer the question below`)
       .setFooter(`You have a total of 15 minutes to answer the question!`)
       .setDescription(text)
-      .setColor("RANDOM");
+      .setColor(settings.color);
   }
 
   static lockdown(type: "SERVER" | "HERE") {
@@ -35,10 +36,10 @@ export default class embeds {
           ? `The server has been locked down.`
           : `The channel has been locked down.`
       )
-      .setColor("RANDOM");
+      .setColor(settings.color);
   }
 
   static empty() {
-    return new MessageEmbed().setColor("RANDOM");
+    return new MessageEmbed().setColor(settings.color);
   }
 }

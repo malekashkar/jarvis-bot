@@ -6,6 +6,7 @@ import settings from "../settings";
 import Event, { Groups } from ".";
 import { permissionCheck } from "../util";
 import { DocumentType } from "@typegoose/typegoose";
+import { StatsModel } from "../models/stats";
 
 export default class CommandHandler extends Event {
   eventName = "message";
@@ -17,6 +18,19 @@ export default class CommandHandler extends Event {
     const userData =
       (await UserModel.findOne({ userId: message.author.id })) ||
       (await UserModel.create({ userId: message.author.id }));
+
+    const statsData =
+      (await StatsModel.findOne({
+        userId: message.author.id,
+        guildId: message.guild.id,
+      })) ||
+      (await StatsModel.create({
+        userId: message.author.id,
+        guildId: message.guild.id,
+      }));
+
+    statsData.messages += 1;
+    await statsData.save();
 
     const globalData =
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
