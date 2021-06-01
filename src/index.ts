@@ -325,7 +325,6 @@ export default class Client extends BaseManager {
       try {
         const commandObj: Command = new command(this);
         if (commandObj && commandObj.cmdName) {
-          console.log(commandObj.cmdName);
           if (this.commands.has(commandObj.cmdName)) {
             logger.error(
               `DUPLICATE_COMMAND`,
