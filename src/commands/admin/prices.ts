@@ -1,7 +1,6 @@
 import { DocumentType } from "@typegoose/typegoose";
 import { Message } from "discord.js";
 import AdminCommands from ".";
-import { Groups } from "..";
 import Global, { ModulePrices } from "../../models/global";
 import User from "../../models/user";
 import embeds from "../../util/embed";

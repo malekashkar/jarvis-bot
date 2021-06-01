@@ -1,4 +1,7 @@
 import { getModelForClass, prop } from "@typegoose/typegoose";
+import { ModulePrices } from "./global";
+
+export type Groups = keyof ModulePrices;
 
 export class Reminder {
   @prop({ required: true })
@@ -37,7 +40,7 @@ export default class User {
   access?: boolean;
 
   @prop({ type: String })
-  modules?: string[];
+  modules?: Groups[];
 
   @prop()
   usedCode?: string;
