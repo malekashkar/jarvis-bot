@@ -111,10 +111,10 @@ export default class GiveawayCommand extends Command {
       roleRequirements = roleRequirementsQuestion.array();
     }
 
-    // Role Multipliers
+    // Bonus Entries
     const roleMultiplierQuestion = await confirmator(
       message,
-      `Would you like to setup role multipliers for the giveaway?`
+      `Would you like to setup bonus entries for the giveaway?`
     );
 
     let roleMultipliers: RoleMultiplier[] = [];
@@ -165,47 +165,16 @@ export default class GiveawayCommand extends Command {
     const messageRequirement = parseInt(messageRequirementQuestion.content);
 
     // Giveaway Embed
-    const giveawayEmbed = embeds
-      .empty()
-      .addField(
-        `Information`,
-        `🎁 **Prize** ${prize}\n${
-          cappedEntries ? `📈 **Capped Entries** ${cappedEntries}\n` : ``
-        }👥 **Winners** ${winners}\n📅 **Ends ${moment(endsAt).fromNow()}**`,
-        true
-      );
-
-    if (messageRequirement || roleRequirements.length) {
-      giveawayEmbed.addField(
-        `Requirements`,
-        `${
-          messageRequirement
-            ? `💬 **Message Requirement** ${messageRequirement}\n`
-            : ``
-        }${
-          roleRequirements.length
-            ? `⚙️ **Role Requirements** ${roleRequirements.map((x) =>
-                x.toString()
-              )}`
-            : ``
-        }`,
-        true
-      );
-    }
-
-    if (roleMultipliers.length) {
-      giveawayEmbed.addField(
-        `Role Multipliers`,
-        `${roleMultipliers
-          .map((x, i) => `${i + 1}. <@&${x.roleId}> - ${x.multiplier}x`)
-          .join("\n")}`,
-        true
-      );
-    }
-
     const giveawayMessage = await channel.send(
-      `🎉 **__GIVEAWAY__**`,
-      giveawayEmbed
+      embeds.giveaway(
+        prize,
+        cappedEntries,
+        winners,
+        endsAt,
+        messageRequirement,
+        roleRequirements,
+        roleMultipliers
+      )
     );
     await giveawayMessage.react("🎉");
 

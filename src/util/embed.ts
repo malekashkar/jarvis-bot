@@ -1,4 +1,7 @@
-import { MessageEmbed } from "discord.js";
+import { DocumentType } from "@typegoose/typegoose";
+import { MessageEmbed, Role } from "discord.js";
+import moment from "moment";
+import { Giveaway, RoleMultiplier } from "../models/giveaway";
 import settings from "../settings";
 
 export default class embeds {
@@ -41,5 +44,60 @@ export default class embeds {
 
   static empty() {
     return new MessageEmbed().setColor(settings.color);
+  }
+
+  static giveaway(
+    prize: string,
+    cappedEntries: number,
+    winners: number,
+    endsAt: Date,
+    messageRequirement: number = 0,
+    roleRequirements: Role[] = [],
+    roleMultipliers: RoleMultiplier[] = []
+  ) {
+    const cappedEntriesString = cappedEntries
+      ? `📈 **Capped Entries** ${cappedEntries}\n`
+      : ``;
+    const endsString =
+      endsAt.getTime() > Date.now()
+        ? `Ends ${moment(endsAt).fromNow()}`
+        : `The giveaway has ended`;
+    const giveawayEmbed = embeds
+      .empty()
+      .addField(
+        `Information`,
+        `🎁 **Prize** ${prize}\n${cappedEntriesString}👥 **Winners** ${winners}\n📅 **${endsString}**`,
+        true
+      );
+
+    if (messageRequirement || roleRequirements.length) {
+      giveawayEmbed.addField(
+        `Requirements`,
+        `${
+          messageRequirement
+            ? `💬 **Message Requirement** ${messageRequirement}\n`
+            : ``
+        }${
+          roleRequirements.length
+            ? `⚙️ **Role Requirements** ${roleRequirements.map((x) =>
+                x.toString()
+              )}`
+            : ``
+        }`,
+        true
+      );
+    }
+
+    if (roleMultipliers.length) {
+      giveawayEmbed.addField(
+        `Bonus Entries`,
+        `${roleMultipliers
+          .map((x, i) => `${i + 1}. <@&${x.roleId}> - ${x.multiplier}x`)
+          .join("\n")}`,
+        true
+      );
+    }
+
+    return giveawayEmbed;
   }
 }

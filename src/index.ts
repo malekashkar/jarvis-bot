@@ -19,7 +19,7 @@ import Order, { OrderModel } from "./models/order";
 import embeds from "./util/embed";
 import { DocumentType } from "@typegoose/typegoose";
 import { CodeInfo, GlobalModel } from "./models/global";
-import { Giveaway, GiveawayModel } from "./models/giveaway";
+import { Giveaway, GiveawayModel, Location } from "./models/giveaway";
 import moment from "moment";
 
 const app = express();
@@ -148,72 +148,27 @@ export default class Client extends BaseManager {
         endsAt: { $gt: new Date() },
       }).cursor();
       ongoingGiveaways.on("data", async (giveaway: DocumentType<Giveaway>) => {
-        const guild = await this.guilds.fetch(giveaway.location.guildId);
-        if (guild) {
-          const channel = guild.channels.resolve(
-            giveaway.location.channelId
-          ) as TextChannel;
-          if (channel) {
-            try {
-              const message = await channel.messages.fetch(
-                giveaway.location.messageId
-              );
-              if (message) {
-                const giveawayEmbed = embeds
-                  .empty()
-                  .addField(
-                    `Information`,
-                    `🎁 **Prize** ${giveaway.prize}\n${
-                      giveaway.cappedEntries
-                        ? `📈 **Capped Entries** ${giveaway.cappedEntries}\n`
-                        : ``
-                    }👥 **Winners** ${giveaway.winners}\n📅 **Ends ${moment(
-                      giveaway.endsAt
-                    ).fromNow()}**`,
-                    true
-                  );
-
-                if (
-                  giveaway.requirements.messageRequirement ||
-                  giveaway.requirements.roleRequirements.length
-                ) {
-                  giveawayEmbed.addField(
-                    `Requirements`,
-                    `${
-                      giveaway.requirements.messageRequirement
-                        ? `💬 **Message Requirement** ${giveaway.requirements.messageRequirement}\n`
-                        : ``
-                    }${
-                      giveaway.requirements.roleRequirements.length
-                        ? `⚙️ **Role Requirements** ${giveaway.requirements.roleRequirements.map(
-                            (x) => `<@&${x}>`
-                          )}`
-                        : ``
-                    }`,
-                    true
-                  );
-                }
-
-                if (giveaway.requirements.multipliers.length) {
-                  giveawayEmbed.addField(
-                    `Role Multipliers`,
-                    `${giveaway.requirements.multipliers
-                      .map(
-                        (x, i) => `${i + 1}. <@&${x.roleId}> - ${x.multiplier}x`
-                      )
-                      .join("\n")}`,
-                    true
-                  );
-                }
-
-                await message.edit(`🎉 **__GIVEAWAY__**`, giveawayEmbed);
-              }
-            } catch (e) {
-              console.log(e);
-              giveaway.ended = true;
-              await giveaway.save();
-            }
-          }
+        const message = await this.locateMessage(giveaway.location);
+        if (message) {
+          await message.edit(
+            embeds.giveaway(
+              giveaway.prize,
+              giveaway.cappedEntries,
+              giveaway.winners,
+              giveaway.endsAt,
+              giveaway.requirements.messageRequirement,
+              giveaway.requirements.roleRequirements.map((roleId) =>
+                message.guild.roles.resolve(roleId)
+              ),
+              giveaway.requirements.multipliers
+            )
+          );
+        } else {
+          console.log(
+            `Giveaway with message ID ${giveaway.location.messageId} has been automatically ended!`
+          );
+          giveaway.ended = true;
+          await giveaway.save();
         }
       });
 
@@ -222,76 +177,92 @@ export default class Client extends BaseManager {
         endsAt: { $lte: new Date() },
       }).cursor();
       endedGiveaways.on("data", async (giveaway: DocumentType<Giveaway>) => {
-        let giveawayWinners: User[] = [];
-
         giveaway.ended = true;
         await giveaway.save();
 
-        const guild = await this.guilds.fetch(giveaway.location.guildId);
-        if (guild) {
-          const channel = guild.channels.resolve(
-            giveaway.location.channelId
-          ) as TextChannel;
-          if (channel) {
-            const message = await channel.messages.fetch(
-              giveaway.location.messageId
-            );
-            if (message) {
-              let entries = message.reactions?.cache
-                .get("🎉")
-                ?.users?.cache?.filter((x) => !x.bot)
-                .array();
-              if (entries?.length) {
-                let possibleWinners: string[] = entries.map((x) => x.id);
+        const message = await this.locateMessage(giveaway.location);
+        if (message) {
+          let entries = message.reactions?.cache
+            .get("🎉")
+            ?.users?.cache?.filter((x) => !x.bot)
+            .array();
+          if (entries?.length) {
+            let possibleWinners: string[] = entries.map((x) => x.id);
 
-                if (giveaway?.requirements?.multipliers?.length) {
-                  for (const multiplier of giveaway.requirements.multipliers) {
-                    for (const user of entries) {
-                      const member = await guild.members.fetch(user);
-                      if (member?.roles?.cache?.has(multiplier.roleId)) {
-                        for (let i = 0; i < multiplier.multiplier; i++) {
-                          possibleWinners.push(user.id);
-                        }
-                      }
+            if (giveaway?.requirements?.multipliers?.length) {
+              for (const multiplier of giveaway.requirements.multipliers) {
+                for (const user of entries) {
+                  const member = await message.guild.members.fetch(user);
+                  if (member?.roles?.cache?.has(multiplier.roleId)) {
+                    for (let i = 0; i < multiplier.multiplier; i++) {
+                      possibleWinners.push(user.id);
                     }
                   }
                 }
-
-                for (let i = 0; i < giveaway.winners; i++) {
-                  const winner =
-                    entries[Math.floor(Math.random() * entries.length)];
-                  entries = entries.filter((x) => x !== winner);
-                  giveawayWinners.push(winner);
-                }
-
-                await message.delete();
-                if (giveawayWinners.length) {
-                  await channel.send(
-                    `${giveawayWinners.map((x) => x.toString()).join(", ")}`,
-                    embeds.normal(
-                      `Giveaway Ended`,
-                      `🎁 **Prize** ${
-                        giveaway.prize
-                      }\n👥 **Winners** ${giveawayWinners
-                        .map((x) => x.toString())
-                        .join(", ")}`
-                    )
-                  );
-                }
-              } else {
-                await message.delete();
-                await channel.send(
-                  embeds.normal(
-                    `Giveaway Ended`,
-                    `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** Not enough people entered the giveaway!`
-                  )
-                );
               }
             }
+
+            let giveawayWinners: User[] = [];
+            for (let i = 0; i < giveaway.winners; i++) {
+              const winner =
+                entries[Math.floor(Math.random() * entries.length)];
+              entries = entries.filter((x) => x !== winner);
+              giveawayWinners.push(winner);
+            }
+
+            const stringWinners = giveawayWinners.join(", ");
+            if (giveawayWinners.length) {
+              await message.edit(
+                embeds.giveaway(
+                  giveaway.prize,
+                  giveaway.cappedEntries,
+                  giveaway.winners,
+                  giveaway.endsAt,
+                  giveaway.requirements.messageRequirement,
+                  giveaway.requirements.roleRequirements.map((roleId) =>
+                    message.guild.roles.resolve(roleId)
+                  ),
+                  giveaway.requirements.multipliers
+                )
+              );
+              await message.channel.send(
+                `${stringWinners}`,
+                embeds.normal(
+                  `Giveaway Ended`,
+                  `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** ${stringWinners}`
+                )
+              );
+            }
+          } else {
+            await message.channel.send(
+              embeds.normal(
+                `Giveaway Ended`,
+                `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** Not enough people entered the giveaway!`
+              )
+            );
           }
         }
       });
     }, 10e3);
+  }
+
+  async locateMessage(location: Location) {
+    const guild = await this.guilds.fetch(location.guildId);
+    if (guild) {
+      const channel = guild.channels.resolve(location.channelId) as TextChannel;
+      if (channel) {
+        const message = await channel.messages.fetch(location.messageId);
+        if (message) {
+          return message;
+        } else {
+          return false;
+        }
+      } else {
+        return false;
+      }
+    } else {
+      return false;
+    }
   }
 
   loadCommands(directory: string = path.join(__dirname, "commands")) {
