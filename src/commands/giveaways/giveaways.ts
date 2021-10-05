@@ -1,5 +1,4 @@
 import { Message, Role } from "discord.js";
-import moment from "moment";
 import ms from "ms";
 import Command, { Groups } from "..";
 import { GiveawayModel, RoleMultiplier } from "../../models/giveaway";
@@ -155,6 +154,43 @@ export default class GiveawayCommand extends Command {
       }
     }
 
+    // Server Join Requirements
+    const linkRegex = new RegExp(
+      /(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]/g
+    );
+    const joinRequirementsQuestion = await confirmator(
+      message,
+      "Would you like to setup server join requirements?"
+    );
+
+    let serverRequirements: string[] = [];
+    if (joinRequirementsQuestion) {
+      const questionMessage = await message.channel.send(
+        embeds.question(
+          `Please enter the server(s) invite links with a space in between.`
+        )
+      );
+
+      const messageCollector = await message.channel.awaitMessages(
+        (x) => x.author.id === message.author.id,
+        { max: 1, time: 900000, errors: ["time"] }
+      );
+
+      if (questionMessage.deletable) await questionMessage.delete();
+      if (!messageCollector?.size) return;
+
+      if (messageCollector.first().deletable)
+        await messageCollector.first().delete();
+
+      const serverRequirementsResponse = messageCollector.first().content;
+      const seperatedServerLinks = serverRequirementsResponse.split(" ");
+      for (const link of seperatedServerLinks) {
+        if (linkRegex.test(link)) {
+          serverRequirements.push(link);
+        }
+      }
+    }
+
     // Giveaway Constants
     const channel = channels.first();
     const prize = prizeQuestion.content;
@@ -192,6 +228,7 @@ export default class GiveawayCommand extends Command {
         messageRequirement,
         roleRequirements: roleRequirements.map((x) => x.id),
         multipliers: roleMultipliers,
+        serverRequirements,
       },
     });
   }

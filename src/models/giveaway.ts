@@ -28,6 +28,9 @@ export class Requirements {
 
   @prop({ type: RoleMultiplier, default: [] })
   multipliers?: RoleMultiplier[];
+
+  @prop({ type: String, default: [] })
+  serverRequirements?: string[];
 }
 
 export class Giveaway {

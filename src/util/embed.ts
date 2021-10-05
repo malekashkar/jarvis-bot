@@ -100,4 +100,6 @@ export default class embeds {
 
     return giveawayEmbed;
   }
+
+  // static giveawayRaw()
 }
