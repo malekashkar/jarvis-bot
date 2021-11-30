@@ -20,18 +20,16 @@
     "@types/ms": "^0.7.31",
     "@types/node": "^14.14.7",
     "@types/node-fetch": "^2.5.7",
-    "canvas": "^2.6.1",
+    "canvas": "^2.8.0",
     "chalk": "^4.1.0",
     "coinbase-commerce-node": "^1.0.4",
-    "discord.js": "^12.5.3",
+    "discord.js": "^13.3.1",
     "dotenv": "^8.2.0",
     "express": "^4.17.1",
     "lodash": "^4.17.20",
     "moment": "^2.27.0",
     "mongoose": "5.10.18",
-    "ms": "^2.1.2",
-    "node-fetch": "^2.6.0",
-    "typescript": "^4.1.5"
+    "node-fetch": "^2.6.0"
   },
   "devDependencies": {
     "@typescript-eslint/eslint-plugin": "^4.0.1",

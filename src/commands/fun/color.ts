@@ -8,10 +8,13 @@ export default class ColorCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(message: Message) {
-    const color =
-      "#" + (0x1000000 + Math.random() * 0xffffff).toString(16).substr(1, 6);
-    await message.channel.send(
-      new MessageEmbed().setTitle(color).setColor(color)
-    );
+    const color = Math.floor(Math.random()*16777215).toString(16);
+    await message.channel.send({
+      embeds: [
+        new MessageEmbed()
+          .setTitle(color)
+          .setColor(parseInt(color))
+      ]
+    });
   }
 }

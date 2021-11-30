@@ -83,3 +83,58 @@ export function permissionCheck(
 
   return true;
 }
+
+// MS Recode
+ 
+export function parseToInteger(str: string) {
+   let match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(
+     str
+   );
+   if (!match) return null;
+
+   const n = parseInt(match[1]);
+   const type = (match[2] || 'ms').toLowerCase();
+
+   switch (type) {
+     case 'years':
+     case 'year':
+     case 'yrs':
+     case 'yr':
+     case 'y':
+       return n * 1000 * 60 * 60 * 24 * 365.25;
+     case 'weeks':
+     case 'week':
+     case 'w':
+       return n * 1000 * 60 * 60 * 24 * 7;
+     case 'days':
+     case 'day':
+     case 'd':
+       return n * 1000 * 60 * 60 * 24;
+     case 'hours':
+     case 'hour':
+     case 'hrs':
+     case 'hr':
+     case 'h':
+       return n * 1000 * 60 * 60;
+     case 'minutes':
+     case 'minute':
+     case 'mins':
+     case 'min':
+     case 'm':
+       return n * 1000 * 60 ;
+     case 'seconds':
+     case 'second':
+     case 'secs':
+     case 'sec':
+     case 's':
+       return n * 1000;
+     case 'milliseconds':
+     case 'millisecond':
+     case 'msecs':
+     case 'msec':
+     case 'ms':
+       return n;
+     default:
+       return undefined;
+   }
+ }

@@ -30,11 +30,13 @@ export default class GiveawayRequirements extends Event {
           ) {
             await reaction.users.remove(user);
             await user
-              .send(
-                embeds.error(
-                  `You need **${giveawayData.requirements.messageRequirement}** messages in order to enter this giveaway!\n**Note: You currently have ${statsData.messages} messages.**`
-                )
-              )
+              .send({
+                embeds: [
+                  embeds.error(
+                    `You need **${giveawayData.requirements.messageRequirement}** messages in order to enter this giveaway!\n**Note: You currently have ${statsData.messages} messages.**`
+                  )
+                ]
+              })
               .catch(() => {});
           }
         }
@@ -53,11 +55,13 @@ export default class GiveawayRequirements extends Event {
           await reaction.users.remove(user);
 
           await user
-            .send(
-              embeds.error(
-                `You need one of the following roles to enter this giveaway: ${roles}`
-              )
-            )
+            .send({
+              embeds: [
+                embeds.error(
+                  `You need one of the following roles to enter this giveaway: ${roles}`
+                )
+              ]
+            })
             .catch(() => {});
         }
       }

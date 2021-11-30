@@ -25,8 +25,8 @@ export default class TranscriptCommand extends UtilityCommands {
 
     if (!fs.existsSync("./transcripts/")) fs.mkdirSync("./transcripts");
     fs.writeFileSync(`./transcripts/${message.channel.id}.txt`, text);
-    await message.channel.send(
-      new MessageAttachment(`./transcripts/${message.channel.id}.txt`)
-    );
+    await message.channel.send({
+      attachments: [new MessageAttachment(`./transcripts/${message.channel.id}.txt`)]
+    });
   }
 }

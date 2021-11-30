@@ -1,5 +1,7 @@
+import { HexColorString } from "discord.js";
+
 export default {
-  color: "#104b52",
+  color: `#00FFFF` as HexColorString,
   ownerId: [
     "325680153503989770",
     "584915458302672916",

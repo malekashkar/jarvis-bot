@@ -18,13 +18,17 @@ export default class AuthCommand extends AuthCommands {
   ) {
     const code = args[0];
     if (!code)
-      return message.channel.send(
-        embeds.error(`Please provide the code you would like to redeem!`)
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(`Please provide the code you would like to redeem!`)
+        ]
+      });
     else if (!globalData.codes.some((x) => x.code === code))
-      return message.channel.send(
-        embeds.error(`The code you provided is either invalid or outdated.`)
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(`The code you provided is either invalid or outdated.`)
+        ]
+      });
 
     const modules = globalData.codes.find((x) => x.code === code)?.modules;
     globalData.codes = globalData.codes.filter((x) => x.code !== code);
@@ -34,11 +38,13 @@ export default class AuthCommand extends AuthCommands {
     userData.modules = modules;
     await userData.save();
 
-    return message.channel.send(
-      embeds.normal(
-        `Welcome To Jarvis`,
-        `Welcome master ${message.author}. I am **${this.client.user.username}**, how can I be of assistance?`
-      )
-    );
+    return message.channel.send({
+      embeds: [
+        embeds.normal(
+          `Welcome To Jarvis`,
+          `Welcome master ${message.author}. I am **${this.client.user.username}**, how can I be of assistance?`
+        )
+      ]
+    });
   }
 }

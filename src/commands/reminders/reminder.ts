@@ -10,17 +10,21 @@ export default class ReminderCommand extends ReminderCommands {
   permission = "ACCESS";
 
   async run(message: Message, args: string[], userData: DocumentType<User>) {
-    const question = await message.channel.send(
-      embeds.question(
-        `Say **list** to list out the reminders or provide a **number** to get a specific reminder.`
-      )
-    );
-    const response = await message.channel.awaitMessages(
-      (x) =>
+    const question = await message.channel.send({
+      embeds: [
+        embeds.question(
+          `Say **list** to list out the reminders or provide a **number** to get a specific reminder.`
+        )
+      ]
+    });
+    const response = await message.channel.awaitMessages({
+      filter: (x) =>
         (x.author.id === message.author.id && x.content === "list") ||
         parseInt(x.content) <= this.client.guilds.cache.size,
-      { max: 1, time: 900000, errors: ["time"] }
-    );
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
 
     if (question.deletable) question.delete();
     if (response.first().deletable) response.first().delete();
@@ -40,29 +44,33 @@ export default class ReminderCommand extends ReminderCommands {
         )
         .join("\n\n");
 
-      await message.channel.send(
-        embeds.normal(
-          `List of reminders`,
-          reminders && reminders.length
-            ? reminders
-            : `You don't have any reminders`
-        )
-      );
+      await message.channel.send({
+        embeds: [
+          embeds.normal(
+            `List of reminders`,
+            reminders && reminders.length
+              ? reminders
+              : `You don't have any reminders`
+          )
+        ]
+      });
     } else {
       const reminder = userData.reminders.find((x) => x.id === option);
       if (!reminder)
-        return message.channel.send(
-          embeds.error(`No reminder was found with the specified ID.`)
-        );
+        return message.channel.send({
+          embeds: [embeds.error(`No reminder was found with the specified ID.`)]
+        });
 
-      message.channel.send(
-        embeds.normal(
-          `Reminder Found`,
-          `**Server:** ${
-            this.client.guilds.resolve(reminder.guildId).name
-          }\n**Name:** ${reminder.name}\n**Message:** ${reminder.message}`
-        )
-      );
+      message.channel.send({
+        embeds: [
+          embeds.normal(
+            `Reminder Found`,
+            `**Server:** ${
+              this.client.guilds.resolve(reminder.guildId).name
+            }\n**Name:** ${reminder.name}\n**Message:** ${reminder.message}`
+          )
+        ]
+      });
     }
   }
 }

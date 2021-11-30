@@ -15,15 +15,19 @@ export default class DeleteCommand extends ReminderCommands {
     args: string[],
     userData: DocumentType<User>,
   ) {
-    const question = await message.channel.send(
-      embeds.question(
-        `What is the ID of the reminder you would like to delete?`
-      )
-    );
-    const response = await message.channel.awaitMessages(
-      (x) => x.author.id === message.author.id && x.content.match(/[0-9]/gm),
-      { max: 1, time: 900000, errors: ["time"] }
-    );
+    const question = await message.channel.send({
+      embeds: [
+        embeds.question(
+          `What is the ID of the reminder you would like to delete?`
+        )
+      ]
+    });
+    const response = await message.channel.awaitMessages({
+      filter: (x) => x.author.id === message.author.id && /[0-9]/gm.test(x.content),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
     if (!response) return;
 
     if (question.deletable) question.delete();
@@ -32,15 +36,15 @@ export default class DeleteCommand extends ReminderCommands {
     const id = parseInt(response.first().content.match(/[0-9]/gm).join(""));
     const reminder = userData.reminders.find((x) => x.id === id);
     if (!reminder)
-      return message.channel.send(
-        embeds.error(`I was not able to find a reminder with the ID \`${id}\`.`)
-      );
+      return message.channel.send({
+        embeds: [embeds.error(`I was not able to find a reminder with the ID \`${id}\`.`)]
+      });
 
     userData.reminders = userData.reminders.filter((x) => x.id !== id);
     await userData.save();
 
-    await message.channel.send(
-      embeds.normal(`Reminder Deleted`, `Reminder \`${id}\` has been deleted.`)
-    );
+    await message.channel.send({
+      embeds: [embeds.normal(`Reminder Deleted`, `Reminder \`${id}\` has been deleted.`)]
+    });
   }
 }

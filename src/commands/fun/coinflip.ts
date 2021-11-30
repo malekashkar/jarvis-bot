@@ -10,12 +10,14 @@ export default class CoinflipCommand extends FunCommands {
   async run(message: Message) {
     const random = ["heads", "tails"][Math.floor(Math.random() * 2)];
 
-    await message.channel.send(
-      new MessageAttachment(
-        random === "heads"
-          ? `https://i.imgur.com/YiydiKH.png`
-          : `https://i.imgur.com/cHkeN1v.png`
-      )
-    );
+    await message.channel.send({
+      attachments: [
+        new MessageAttachment(
+          random === "heads"
+            ? `https://i.imgur.com/YiydiKH.png`
+            : `https://i.imgur.com/cHkeN1v.png`
+        )
+      ]
+    });
   }
 }

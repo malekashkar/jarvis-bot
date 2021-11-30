@@ -26,16 +26,20 @@ export default class ModulePriceCommand extends AdminCommands {
 
     const moduleName = args[0]?.toLowerCase();
     if (!modules?.includes(moduleName))
-      return message.channel.send(
-        embeds.error(
-          `Please choose from the following modules: ${modules.join(", ")}`
-        )
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(
+            `Please choose from the following modules: ${modules.join(", ")}`
+          )
+        ]
+      });
     const price = !isNaN(parseInt(args[0])) ? parseInt(args[0]) : null;
     if (!price)
-      return message.channel.send(
-        embeds.error(`Please provide the new price of the module.`)
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(`Please provide the new price of the module.`)
+        ]
+      });
 
     const confirm = await confirmator(
       message,
@@ -46,12 +50,14 @@ export default class ModulePriceCommand extends AdminCommands {
       globalData.modulePrices[moduleName as keyof ModulePrices] = price;
       await globalData.save();
 
-      return message.channel.send(
-        embeds.normal(
-          `Module Price Edited`,
-          `The price of the module **${moduleName}** has been set to **$${price}**!`
-        )
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.normal(
+            `Module Price Edited`,
+            `The price of the module **${moduleName}** has been set to **$${price}**!`
+          )
+        ]
+      });
     }
   }
 }

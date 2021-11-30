@@ -19,21 +19,25 @@ export default class SetstatusCommand extends AdminCommands {
   ) {
     const status = args.length ? args.join(" ") : null;
     if (!status)
-      return message.channel.send(
-        embeds.error(
-          `Please provide the message you would like to set the status to!`
-        )
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(
+            `Please provide the message you would like to set the status to!`
+          )
+        ]
+      });
 
     globalData.status = status;
     await globalData.save();
 
     this.client.user.setActivity(status, { type: "WATCHING" });
-    return message.channel.send(
-      embeds.normal(
-        `Status Changed`,
-        `The status of the bot has been changed to: **${status}**`
-      )
-    );
+    return message.channel.send({
+      embeds: [
+        embeds.normal(
+          `Status Changed`,
+          `The status of the bot has been changed to: **${status}**`
+        )
+      ]
+    });
   }
 }

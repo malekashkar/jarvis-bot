@@ -1,5 +1,5 @@
 import FunCommands from ".";
-import { Message, MessageEmbed } from "discord.js";
+import { Message, MessageAttachment } from "discord.js";
 import { createCanvas, loadImage, registerFont } from "canvas";
 
 export default class CreateMemeCommand extends FunCommands {
@@ -23,10 +23,10 @@ export default class CreateMemeCommand extends FunCommands {
     const imgQuestion = await message.channel.send(
       `Please provide me with an image for the meme.`
     );
-    const imgResponse = await message.channel.awaitMessages(
-      (m) => m.author.id === message.author.id && m.attachments,
-      { max: 1 }
-    );
+    const imgResponse = await message.channel.awaitMessages({ 
+      filter: (m: Message) => m.author.id === message.author.id && m.attachments.size > 0,
+      max: 1 
+    });
     if (imgQuestion.deletable) imgQuestion.delete();
 
     const canvas = createCanvas(
@@ -43,35 +43,35 @@ export default class CreateMemeCommand extends FunCommands {
     const memeQuestion = await message.channel.send(
       `What would you like the meme text to be?`
     );
-    const text = await message.channel.awaitMessages(
-      (m) => m.author.id === message.author.id && m.content.length < 100,
-      { max: 1 }
-    );
+    const text = await message.channel.awaitMessages({
+      filter: (m) => m.author.id === message.author.id && m.content.length < 100,
+      max: 1
+    });
     if (memeQuestion.deletable) memeQuestion.delete();
     if (text.first().deletable) text.first().delete();
 
     const placeQuestion = await message.channel.send(
       `Where would you like the meme to be placed? (top+, top, middle, down, down+)`
     );
-    const placement = await message.channel.awaitMessages(
-      (m) =>
+    const placement = await message.channel.awaitMessages({
+      filter: (m) =>
         m.author.id === message.author.id &&
         ["top+", "top", "middle", "down", "down+"].includes(m.content),
-      { max: 1 }
-    );
+      max: 1
+    });
     if (placeQuestion.deletable) placeQuestion.delete();
     if (placement.first().deletable) placement.first().delete();
 
     const size = await message.channel.send(
       `What should the text size be? (default is 20)`
     );
-    const text_size = await message.channel.awaitMessages(
-      (m) =>
+    const text_size = await message.channel.awaitMessages({
+      filter: (m) =>
         m.author.id === message.author.id &&
         parseInt(m.content) > 10 &&
         parseInt(m.content) < 100,
-      { max: 1 }
-    );
+      max: 1
+    });
     if (size.deletable) size.delete();
     if (text_size.first().deletable) text_size.first().delete();
 
@@ -89,15 +89,9 @@ export default class CreateMemeCommand extends FunCommands {
     ctx.strokeText(text.first().content.toUpperCase(), x, y);
     ctx.fillText(text.first().content.toUpperCase(), x, y);
 
-    await message.channel.send(
-      new MessageEmbed()
-        .attachFiles([
-          {
-            attachment: canvas.toBuffer(),
-            name: "meme.png",
-          },
-        ])
-        .setImage("attachment://meme.png")
-    );
+    // Send picture buffer
+    await message.channel.send({
+      attachments: [new MessageAttachment(canvas.toBuffer(), "meme.png")]
+    });
   }
 }

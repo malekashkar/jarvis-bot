@@ -8,6 +8,6 @@ export default class DogCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(message: Message) {
-    await message.channel.send(new MessageAttachment(await imgurImage("dog")));
+    await message.channel.send({ embeds: [new MessageAttachment(await imgurImage("dog"))] });
   }
 }

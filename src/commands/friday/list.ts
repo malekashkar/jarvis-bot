@@ -14,15 +14,17 @@ export default class ListCommand extends FridayCommands {
 
   async run(
     message: Message,
-    args: string[],
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>,
+    _args: string[],
+    _userData: DocumentType<User>,
+    _globalData: DocumentType<Global>,
     guildData: DocumentType<Guild>
   ) {
     if (!guildData.roles.length)
-      return message.channel.send(
-        embeds.error(`There are no roles setup currently!`)
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(`There are no roles setup currently!`)
+        ]
+      });
 
     const fields = guildData.roles.map((role) => {
       return {
@@ -34,8 +36,10 @@ export default class ListCommand extends FridayCommands {
       };
     });
 
-    await message.channel.send(
-      embeds.empty().setTitle(`Listed Roles`).addFields(fields)
-    );
+    await message.channel.send({
+      embeds: [
+        embeds.empty().setTitle(`Listed Roles`).addFields(fields)
+      ]
+    });
   }
 }

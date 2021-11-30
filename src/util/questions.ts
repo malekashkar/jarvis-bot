@@ -8,19 +8,21 @@ export async function confirmator(
   userId?: string
 ) {
   const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send(
-    embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)
-  );
+  const questionMessage = await message.channel.send({
+    embeds: [embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)]
+  });
   for (const emoji of ["✅", "❎"]) {
     await questionMessage.react(emoji);
   }
 
-  const reactionCollector = await questionMessage.awaitReactions(
-    (r, u) =>
+  const reactionCollector = await questionMessage.awaitReactions({
+    filter: (r, u) =>
       (u.id === reactionUserId && r.emoji.name === "✅") ||
       (u.id === reactionUserId && r.emoji.name === "❎"),
-    { max: 1, time: 900000, errors: ["time"] }
-  );
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
 
   if (questionMessage.deletable) await questionMessage.delete();
 
@@ -37,17 +39,19 @@ export async function optionReactQuestion(
   const emojis = emojiList.slice(0, options.length);
   const reactionUserId = userId || message.author.id;
   const questionOptions = options.map((x, i) => `${emojis[i]} ${x}`);
-  const questionMessage = await message.channel.send(
-    embeds.question(question + `\n\n${questionOptions.join("\n")}`)
-  );
+  const questionMessage = await message.channel.send({
+    embeds: [embeds.question(question + `\n\n${questionOptions.join("\n")}`)]
+  });
   for (const emoji of emojis) {
     await questionMessage.react(emoji);
   }
 
-  const reactionCollector = await questionMessage.awaitReactions(
-    (r, u) => u.id === reactionUserId && emojis.includes(r.emoji.name),
-    { max: 1, time: 900000, errors: ["time"] }
-  );
+  const reactionCollector = await questionMessage.awaitReactions({
+    filter: (r, u) => u.id === reactionUserId && emojis.includes(r.emoji.name),
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
 
   if (questionMessage.deletable) await questionMessage.delete();
   return reactionCollector
@@ -62,14 +66,41 @@ export async function messageQuestion(
   options?: string[]
 ) {
   const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send(embeds.question(question));
+  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages(
-    (x) =>
+  const messageCollector = await message.channel.awaitMessages({
+    filter: (x) =>
       x.author.id === reactionUserId &&
       (options && options.length ? options.includes(x.content) : true),
-    { max: 1, time: 900000, errors: ["time"] }
-  );
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
+
+  if (questionMessage.deletable) await questionMessage.delete();
+  if (messageCollector?.first()?.deletable)
+    await messageCollector.first().delete();
+
+  return messageCollector?.first();
+}
+
+export async function messageQuestionOrCancel(
+  message: Message,
+  question: string,
+  userId?: string,
+  options?: string[]
+) {
+  const reactionUserId = userId || message.author.id;
+  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+
+  const messageCollector = await message.channel.awaitMessages({
+    filter: (x) =>
+      x.author.id === reactionUserId &&
+      (options && options.length ? options.includes(x.content) : true),
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
 
   if (questionMessage.deletable) await questionMessage.delete();
   if (messageCollector?.first()?.deletable)
@@ -84,15 +115,16 @@ export async function getTaggedUsers(
   userId?: string
 ) {
   const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send(embeds.question(question));
+  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages(
-    (x) =>
+  const messageCollector = await message.channel.awaitMessages({
+    filter: (x) =>
       x.author.id === reactionUserId &&
-      x.mentions.users &&
-      x.mentions.users.size,
-    { max: 1, time: 900000, errors: ["time"] }
-  );
+      x.mentions.users.size > 0,
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
 
   if (questionMessage.deletable) await questionMessage.delete();
   if (messageCollector.first().deletable)
@@ -107,15 +139,46 @@ export async function getTaggedRoles(
   userId?: string
 ) {
   const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send(embeds.question(question));
+  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages(
-    (x) =>
+  const messageCollector = await message.channel.awaitMessages({
+    filter: (x) =>
       x.author.id === reactionUserId &&
-      x.mentions.roles &&
-      x.mentions.roles.size,
-    { max: 1, time: 900000, errors: ["time"] }
-  );
+      x.mentions.roles.size > 0,
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
+
+  if (questionMessage.deletable) await questionMessage.delete();
+  if (messageCollector.first().deletable)
+    await messageCollector.first().delete();
+
+  return messageCollector.first().mentions.roles;
+}
+
+export async function getTaggedRolesOrCancel(
+  message: Message,
+  question: string,
+  userId?: string
+) {
+  const reactionUserId = userId || message.author.id;
+  const questionMessage = await message.channel.send({
+    embeds: [embeds.question(question)]
+  });
+
+  await questionMessage.react("🚫");
+
+  const reactionCollector = await questionMessage.awaitReactions()
+
+  const messageCollector = await message.channel.awaitMessages({
+    filter: (x) =>
+      x.author.id === reactionUserId &&
+      x.mentions.roles.size > 0,
+    max: 1,
+    time: 900000, 
+    errors: ["time"]
+  });
 
   if (questionMessage.deletable) await questionMessage.delete();
   if (messageCollector.first().deletable)
@@ -130,15 +193,16 @@ export async function getTaggedChannels(
   userId?: string
 ) {
   const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send(embeds.question(question));
+  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages(
-    (x) =>
+  const messageCollector = await message.channel.awaitMessages({
+    filter: (x) =>
       x.author.id === reactionUserId &&
-      x.mentions.channels &&
-      x.mentions.channels.size,
-    { max: 1, time: 900000, errors: ["time"] }
-  );
+      x.mentions.channels.size > 0,
+    max: 1,
+    time: 900000,
+    errors: ["time"]
+  });
 
   if (questionMessage.deletable) await questionMessage.delete();
   if (messageCollector.first().deletable)

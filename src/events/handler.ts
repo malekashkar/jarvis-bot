@@ -50,7 +50,7 @@ export default class CommandHandler extends Event {
         .split(/\n+/g);
       const command = args.shift().toLowerCase();
 
-      for (const commandObj of this.client.commands.array()) {
+      for (const commandObj of Array.from(this.client.commands.values())) {
         if (commandObj.disabled) continue;
         if (
           commandObj.cmdName.toLowerCase() === command.toLowerCase() ||
@@ -67,7 +67,7 @@ export default class CommandHandler extends Event {
             )
           )
             return;
-          if (message.channel.type === "text") message.delete();
+          if (message.channel.type == "GUILD_TEXT") message.delete();
           commandObj.run(message, args, userData, globalData, guildData);
         }
       }

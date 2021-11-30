@@ -8,6 +8,10 @@ export default class CatCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(message: Message) {
-    await message.channel.send(new MessageAttachment(await imgurImage("cat")));
+    await message.channel.send({
+      attachments: [
+        new MessageAttachment(await imgurImage("cat"))
+      ]
+    });
   }
 }

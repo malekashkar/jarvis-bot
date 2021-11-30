@@ -35,25 +35,27 @@ export default class Advertisement extends Event {
             !userData?.lastAd?.nextAdTime ||
             userData.lastAd.nextAdTime < Date.now()
           ) {
-            const quest = await message.channel.send(
-              embeds
+            const quest = await message.channel.send({
+              embeds: [
+                embeds
                 .normal(
                   `Advertisement Confirmation`,
                   `Are you sure you would like to post this advertisement.\nClick the ✅ or 🚫 depending on your choice.`
                 )
                 .addField(`Advertisement Message`, message.content, true)
                 .addField(`Advertisement Interval`, ms(role.cooldownTime), true)
-            );
+              ]
+            });
             await quest.react("✅");
             await quest.react("🚫");
 
             quest
-              .awaitReactions(
-                (r, u) =>
+              .awaitReactions({
+                filter: (r, u) =>
                   u.id === message.author.id &&
                   ["🚫", "✅"].includes(r.emoji.name),
-                { max: 1, time: 900000, errors: ["time"] }
-              )
+                max: 1, time: 900000, errors: ["time"]
+              })
               .then(async (reaction) => {
                 if (reaction.first().emoji.name === "✅") {
                   if (quest.deletable) quest.delete();
@@ -70,14 +72,16 @@ export default class Advertisement extends Event {
               });
           } else {
             message.delete();
-            const denial = await message.channel.send(
-              embeds.error(
-                `Please wait **${ms(
-                  userData.lastAd.nextAdTime - Date.now()
-                )}** before you can post an ad again!`
-              )
-            );
-            await denial.delete({ timeout: 10000 });
+            const denial = await message.channel.send({
+              embeds: [
+                embeds.error(
+                  `Please wait **${ms(
+                    userData.lastAd.nextAdTime - Date.now()
+                  )}** before you can post an ad again!`
+                )
+              ]
+            });
+            await denial.delete();
           }
         }
       }

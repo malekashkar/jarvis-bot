@@ -21,21 +21,21 @@ export default class OrderCommand extends Command {
     guildData: DocumentType<Global>
   ) {
     if (!(message.channel instanceof DMChannel))
-      return message.channel.send(
-        embeds.error(`You can only use this command in our DM's!`)
-      );
+      return message.channel.send({
+        embeds: [embeds.error(`You can only use this command in our DM's!`)]
+      });
     else if (userData.access)
-      return message.channel.send(
-        embeds.error(`You already have access to this discord bot!`)
-      );
+      return message.channel.send({
+        embeds: [embeds.error(`You already have access to this discord bot!`)]
+      });
 
     const orderData = await OrderModel.findOne({
       userId: message.author.id,
     });
     if (orderData)
-      return await message.channel.send(
-        embeds.error(`You already have an order open!`)
-      );
+      return await message.channel.send({
+        embeds: [embeds.error(`You already have an order open!`)]
+      });
 
     const modules: Groups[] = _.sortedUniq(
       this.client.commands
@@ -47,23 +47,23 @@ export default class OrderCommand extends Command {
       .map((x, i) => `${emojis[i]} ${x}`)
       .join("\n");
 
-    const modulesQuestion = await message.channel.send(
-      embeds.question(
-        `Which modules would you like to install?\n\n${modulesDescription}`
-      )
-    );
+    const modulesQuestion = await message.channel.send({
+      embeds: [
+        embeds.question(
+          `Which modules would you like to install?\n\n${modulesDescription}`
+        )
+      ]
+    });
     for (const emoji of moduleEmojis.concat("✅")) {
       await modulesQuestion.react(emoji);
     }
 
-    const collector = await modulesQuestion.awaitReactions(
-      (r, u) => u.id === message.author.id && r.emoji.name === "✅",
-      {
-        max: 1,
-        time: 10 * 60 * 1000,
-        errors: ["time"],
-      }
-    );
+    const collector = await modulesQuestion.awaitReactions({
+      filter: (r, u) => u.id === message.author.id && r.emoji.name === "✅",
+      max: 1,
+      time: 10 * 60 * 1000,
+      errors: ["time"],
+    });
 
     if (modulesQuestion.deletable) await modulesQuestion.delete();
     if (collector?.first()) {
@@ -94,14 +94,16 @@ export default class OrderCommand extends Command {
       try {
         await charge.save();
 
-        const invoiceMessage = await message.channel.send(
-          embeds
+        const invoiceMessage = await message.channel.send({
+          embeds: [
+            embeds
             .normal(
               `Invoice Created`,
               `Please complete the payment here: ${charge.hosted_url}.\n\nSelected Modules:\n${selectedModulesDescription}`
             )
             .setFooter(`You must send the payment in within the next hour.`)
-        );
+          ]
+        });
 
         await OrderModel.create(
           new Order(
@@ -114,11 +116,13 @@ export default class OrderCommand extends Command {
         );
       } catch (err) {
         console.log(err);
-        message.channel.send(
-          embeds.error(
-            `There was an error creating your order, please contact administration!`
-          )
-        );
+        message.channel.send({
+          embeds: [
+            embeds.error(
+              `There was an error creating your order, please contact administration!`
+            )
+          ]
+        });
       }
     }
   }

@@ -1,4 +1,4 @@
-import { Message, TextChannel, VoiceChannel } from "discord.js";
+import { Message, TextChannel, VoiceChannel, Permissions } from "discord.js";
 import embeds from "../../util/embed";
 import ModCommands from ".";
 
@@ -18,42 +18,48 @@ export default class LockdownCommand extends ModCommands {
         ? "channel"
         : null;
     if (!option)
-      return message.channel.send(
-        embeds.error(
-          `Please provide **server/channel** as your first argument.`
-        )
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(
+            `Please provide **server/channel** as your first argument.`
+          )
+        ]
+      });
 
     if (option === "server") {
       for (const channel of message.guild.channels.cache) {
         if (channel instanceof TextChannel || channel instanceof VoiceChannel)
           await lockChannel(channel);
       }
-      return message.channel.send(
-        embeds.normal(`Operation Complete`, `The server has been locked down!`)
-      );
+      return message.channel.send({
+        embeds: [embeds.normal(`Operation Complete`, `The server has been locked down!`)]
+      });
     } else {
       await lockChannel(message.channel as TextChannel);
-      return message.channel.send(
-        embeds.normal(
-          `Operation Complete`,
-          `This channel has been locked down!`
-        )
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.normal(
+            `Operation Complete`,
+            `This channel has been locked down!`
+          )
+        ]
+      });
     }
   }
 }
 
 async function lockChannel(channel: TextChannel | VoiceChannel) {
   if (channel instanceof TextChannel) {
-    await channel.updateOverwrite(channel.guild.roles.everyone, {
-      VIEW_CHANNEL: true,
-      SEND_MESSAGES: false,
-    });
+    await channel.permissionOverwrites.set([{
+      id: channel.guild.roles.everyone,
+      allow: [Permissions.FLAGS.VIEW_CHANNEL],
+      deny: [Permissions.FLAGS.SEND_MESSAGES]
+    }]);
   } else if (channel instanceof VoiceChannel) {
-    await channel.updateOverwrite(channel.guild.roles.everyone, {
-      VIEW_CHANNEL: true,
-      SPEAK: false,
-    });
+    await channel.permissionOverwrites.set([{
+      id: channel.guild.roles.everyone,
+      allow: [Permissions.FLAGS.VIEW_CHANNEL],
+      deny: [Permissions.FLAGS.SPEAK]
+    }]);
   }
 }

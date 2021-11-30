@@ -1,11 +1,10 @@
-import { DocumentType } from "@typegoose/typegoose";
-import { MessageEmbed, Role } from "discord.js";
+import { MessageEmbed, Role, HexColorString } from "discord.js";
 import moment from "moment";
-import { Giveaway, RoleMultiplier } from "../models/giveaway";
+import { RoleMultiplier } from "../models/giveaway";
 import settings from "../settings";
 
 export default class embeds {
-  static image(image: string, color: string) {
+  static image(image: string, color: HexColorString) {
     return new MessageEmbed().setImage(image).setColor(color);
   }
 

@@ -1,12 +1,11 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { Message } from "discord.js";
+import { Message, TextChannel, Permissions } from "discord.js";
 import FridayCommands from ".";
 import Global from "../../models/global";
 import { Guild, Roles } from "../../models/guild";
 import User from "../../models/user";
 import {
   getTaggedRoles,
-  getTaggedChannels,
   messageQuestion,
   confirmator,
 } from "../../util/questions";
@@ -19,9 +18,9 @@ export default class SetupCommand extends FridayCommands {
 
   async run(
     message: Message,
-    args: string[],
-    userData: DocumentType<User>,
-    globalData: DocumentType<Global>,
+    _args: string[],
+    _userData: DocumentType<User>,
+    _globalData: DocumentType<Global>,
     guildData: DocumentType<Guild>
   ) {
     const roles = await getTaggedRoles(
@@ -55,11 +54,13 @@ export default class SetupCommand extends FridayCommands {
     );
     await guildData.save();
 
-    channels.forEach(async (channel) => {
-      await channel.updateOverwrite(role.id, {
-        SEND_MESSAGES: true,
-        VIEW_CHANNEL: true,
-      });
+    channels.forEach(async (channel: TextChannel) => {
+      await channel.permissionOverwrites.set(
+        [{
+          id: role.id,
+          allow: [Permissions.FLAGS.SEND_MESSAGES, Permissions.FLAGS.VIEW_CHANNEL]
+        }]
+      );
     });
   }
 }
@@ -70,11 +71,11 @@ export async function getNumberedChannels(
   userId?: string
 ) {
   const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send(embeds.question(question));
+  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
 
+  const filter = (message: Message) => message.author.id == reactionUserId;
   const messageCollector = await message.channel.awaitMessages(
-    (x) => x.author.id === reactionUserId,
-    { max: 1, time: 900000, errors: ["time"] }
+    { filter, max: 1, time: 900000, errors: ["time"] }
   );
 
   if (questionMessage.deletable) await questionMessage.delete();

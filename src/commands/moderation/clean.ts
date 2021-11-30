@@ -9,17 +9,20 @@ export default class CleanCommand extends ModCommands {
   permission = "ACCESS";
 
   async run(message: Message) {
-    const userQuestion = await message.channel.send(
-      embeds.question(
-        `Would you like to clear a users messages? Say "no" if not.`
-      )
-    );
-    const userReponse = await message.channel.awaitMessages(
-      (x) =>
-        (x.author.id === message.author.id && x.content.includes("no")) ||
-        x.mentions.users,
-      { max: 1, time: 900000, errors: ["time"] }
-    );
+    const userQuestion = await message.channel.send({
+      embeds: [
+        embeds.question(
+          `Would you like to clear a users messages? Say "no" if not.`
+        )
+      ]
+    });
+    const userReponse = await message.channel.awaitMessages({
+      filter: (x) =>
+        (x.author.id === message.author.id && x.content.includes("no")) || x.mentions.users.size > 0,
+      max: 1, 
+      time: 900000, 
+      errors: ["time"]
+    });
     if (!userReponse) return;
 
     const user =
@@ -29,13 +32,15 @@ export default class CleanCommand extends ModCommands {
     if (userQuestion.deletable) userQuestion.delete();
     if (userReponse.first().deletable) userReponse.first().delete();
 
-    const amountQuestion = await message.channel.send(
-      embeds.question(`How many messages would you like to delete? Up to 100.`)
-    );
-    const amountResponse = await message.channel.awaitMessages(
-      (x) => x.author.id === message.author.id && x.content.match(/[0-9]/gm),
-      { max: 1, time: 900000, errors: ["time"] }
-    );
+    const amountQuestion = await message.channel.send({
+      embeds: [embeds.question(`How many messages would you like to delete? Up to 100.`)]
+    });
+    const amountResponse = await message.channel.awaitMessages({
+      filter: (x) => x.author.id === message.author.id && /[0-9]/gm.test(x.content),
+      max: 1, 
+      time: 900 * 1000, 
+      errors: ["time"]
+    });
     if (!amountResponse) return;
 
     if (amountQuestion.deletable) amountQuestion.delete();

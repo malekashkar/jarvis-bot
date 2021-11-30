@@ -21,19 +21,23 @@ export default class DeauthCommand extends AuthCommands {
     const user = users.first();
     userData = await UserModel.findById(user.id);
     if (!userData || !userData.access)
-      return message.channel.send(
-        embeds.error(`That user is not authorized, you cannot deauth him!`)
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(`That user is not authorized, you cannot deauth him!`)
+        ]
+      });
 
     userData.access = false;
     userData.usedCode = null;
     await userData.save();
 
-    message.channel.send(
-      embeds.normal(
-        `User De-authed`,
-        `${user.username} has been de-authorized from using the bot.`
-      )
-    );
+    message.channel.send({
+      embeds: [
+        embeds.normal(
+          `User De-authed`,
+          `${user.username} has been de-authorized from using the bot.`
+        )
+      ]
+    });
   }
 }

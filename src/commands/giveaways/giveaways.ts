@@ -1,14 +1,13 @@
-import { Message, Role } from "discord.js";
-import ms from "ms";
+import { Message, TextChannel } from "discord.js";
 import Command, { Groups } from "..";
 import { GiveawayModel, RoleMultiplier } from "../../models/giveaway";
+import { parseToInteger } from "../../util";
 import embeds from "../../util/embed";
 import {
   messageQuestion,
   getTaggedChannels,
-  optionReactQuestion,
-  getTaggedRoles,
-  confirmator,
+  getTaggedRolesOrCancel,
+  messageQuestionOrCancel,
 } from "../../util/questions";
 
 export default class GiveawayCommand extends Command {
@@ -19,217 +18,101 @@ export default class GiveawayCommand extends Command {
   aliases = ["giveaway"];
 
   async run(message: Message) {
-    // Prize
-    const prizeQuestion = await messageQuestion(
-      message,
-      `What is the prize of the giveaway?`
-    );
-    if (!prizeQuestion) return;
-
-    // Winners
-    const winnersQuestion = await messageQuestion(
-      message,
-      `How many winners will the giveaway have?`
-    );
-    if (!winnersQuestion) return;
-    else if (isNaN(parseInt(winnersQuestion.content))) {
-      return message.channel.send(
-        embeds.error(`Please provide a valid number of winners!`)
-      );
+    const giveawaySettings = await this.giveawayCog(message);
+    if(giveawaySettings.success) {
+      const giveawayMessage = await giveawaySettings.channel?.send({
+        embeds: [
+          embeds.giveaway(
+            giveawaySettings.prize,
+            giveawaySettings.cappedEntries,
+            giveawaySettings.winners,
+            giveawaySettings.endsAt,
+            giveawaySettings.messageRequirements,
+            giveawaySettings.roleRequirements,
+            giveawaySettings.roleMultipliers
+          )
+        ]
+      });
+      await giveawayMessage.react("🎉");
+  
+      await GiveawayModel.create({
+        prize: giveawaySettings.prize,
+        winners: giveawaySettings.winners,
+        cappedEntries: giveawaySettings.cappedEntries,
+        location: {
+          guildId: message.guild.id,
+          channelId: giveawaySettings.channel.id,
+          messageId: giveawayMessage.id,
+        },
+        endsAt: giveawaySettings.endsAt,
+        requirements: {
+          messageRequirement: giveawaySettings.messageRequirements,
+          roleRequirements: giveawaySettings.roleRequirements.map(x => x.id),
+          multipliers: giveawaySettings.roleMultipliers,
+          serverRequirements: giveawaySettings.serverRequirements,
+        },
+      });
+    } else {
+      message.channel.send({
+        embeds: [embeds.error(giveawaySettings.error)]
+      });
     }
+  }
 
-    // Giveaway Channel
-    const channels = await getTaggedChannels(
-      message,
-      `Tag the channel the giveaway should be located in.`
-    );
-    if (!channels?.size) return;
+  async giveawayCog(message: Message) {
+    const prizeQuestion = await messageQuestion(message, `What is the prize of the giveaway?`);
+    if(!prizeQuestion.content) return { success: false, error: "Please provide a prize for the user!" };
 
-    // Time end or capped entries
-    const cappedEntriesOrTime = await optionReactQuestion(
-      message,
-      `Would you like to set a time limit or an entries limit?\n*Note: Entries limit still comes with a time limit*`,
-      ["Capped Entries", "Time Limit"]
-    );
-    if (!cappedEntriesOrTime) return;
+    const winnersQuestion = await messageQuestion(message, `How many winners will the giveaway have?`);
+    if(!winnersQuestion.content) return null;
 
-    let cappedEntries = 0;
-    if (cappedEntriesOrTime === "Capped Entries") {
-      const cappedEntriesQuestion = await messageQuestion(
-        message,
-        `How many max entries can this giveaway have?`
-      );
-      if (!cappedEntriesQuestion) return;
-      else if (isNaN(parseInt(cappedEntriesQuestion.content))) {
-        return message.channel.send(
-          embeds.error(`Please provide a valid number of capped entries!`)
-        );
-      }
-      cappedEntries = parseInt(cappedEntriesQuestion.content);
-    }
+    const channelsQuestion = await getTaggedChannels(message, `Tag the channel the giveaway should be located in.`);
+    if(channelsQuestion.size == 0) return null;
 
-    // Ending Time
-    const unparsedTime = await messageQuestion(
-      message,
-      `How long should this giveaway last? (ex. 10m, 1h, 2d)`
-    );
-    if (!unparsedTime) return;
+    const cappedEntriesQuestion = await messageQuestion(message, `How many max entries can this giveaway have? (Enter 0 for unlimited)`);
+    if(!cappedEntriesQuestion.content) return null;
 
-    const parsedTime = ms(unparsedTime.content);
-    if (!parsedTime)
-      return message.channel.send(
-        embeds.error(`Please provide a valid time, ex. 10m, 1h, 2d.`)
-      );
+    const unparsedTime = await messageQuestion(message, `How long should this giveaway last? (ex. 10m, 1h, 2d)`);
+    if(!unparsedTime.content) return null;
 
-    // Message Requirements
-    const messageRequirementQuestion = await messageQuestion(
-      message,
-      `How many messages must a user have to enter?\n*Note: Enter 0 if there should be no requirement.*`
-    );
-    if (!messageRequirementQuestion) return;
-    else if (isNaN(parseInt(messageRequirementQuestion.content))) {
-      return message.channel.send(
-        embeds.error(`Please provide a valid number of messages!`)
-      );
-    }
+    const messageRequirementQuestion = await messageQuestion(message, `How many messages must a user have to enter? (Enter 0 for no requirement)`);
+    if(!messageRequirementQuestion.content) return null;
 
-    // Role Requirements
-    const roleReqQuestion = await confirmator(
-      message,
-      `Would you like to setup role requirements for this giveaway?`
-    );
+    const roleRequirementsQuestion = await getTaggedRolesOrCancel(message, `Please tag all the roles a user needs before entering a giveaway.`);
+    if(roleRequirementsQuestion.size == 0) return null;
+    
+    const parsedTime = parseToInteger(unparsedTime.content);
+    if(!parsedTime) return null;
 
-    let roleRequirements: Role[] = [];
-    if (roleReqQuestion) {
-      const roleRequirementsQuestion = await getTaggedRoles(
-        message,
-        `Please tag all the roles a user needs before entering a giveaway.`
-      );
-      if (!roleRequirementsQuestion?.size) return;
-
-      roleRequirements = roleRequirementsQuestion.array();
-    }
-
-    // Bonus Entries
-    const roleMultiplierQuestion = await confirmator(
-      message,
-      `Would you like to setup bonus entries for the giveaway?`
-    );
-
-    let roleMultipliers: RoleMultiplier[] = [];
-    if (roleMultiplierQuestion) {
-      const questionMessage = await message.channel.send(
-        embeds.question(
-          `Tag the roles that should have an entry multiplier, then add the amount of additional entries per role. Make sure to separate each role included the entry with a comma.\n**Example: @role 2, @role2 6, @role3 3**`
-        )
-      );
-
-      const messageCollector = await message.channel.awaitMessages(
-        (x) =>
-          x.author.id === message.author.id &&
-          x.mentions.roles &&
-          x.mentions.roles.size,
-        { max: 1, time: 900000, errors: ["time"] }
-      );
-
-      if (questionMessage.deletable) await questionMessage.delete();
-      if (!messageCollector?.size) return;
-
-      if (messageCollector.first().deletable)
-        await messageCollector.first().delete();
-
-      const roleMultiplierResponse = messageCollector.first().content;
-      const seperatedMultipliers = roleMultiplierResponse.split(",");
-      if (seperatedMultipliers) {
-        roleMultipliers = seperatedMultipliers
-          .map((multiplier) => {
-            const info = /<@&(\d+)> (\d+)/g.exec(multiplier);
-            if (info?.length >= 3)
-              return {
-                roleId: info[1],
-                multiplier: parseInt(info[2]),
-              } as RoleMultiplier;
-          })
-          .filter((x) => !!x);
-      }
-    }
+    const roleMultiplierQuestion = await messageQuestionOrCancel(message, `Tag the roles that should have bonus entries/entry multipliers.\n\`Example: @role 2, @role2 6, @role3 3\``);
+    const roleMultipliers = 
+      roleMultiplierQuestion.content
+        .split(",")
+        .map((mult) => {
+          const info = /<@&(\d+)> (\d+)/g.exec(mult);
+          if (info?.length >= 3)
+            return { roleId: info[1], multiplier: parseInt(info[2]) } as RoleMultiplier;
+        })
+        .filter(x => !!x)
+      || []; // Might be able to remove this line depending on the map/filter return.
 
     // Server Join Requirements
-    const linkRegex = new RegExp(
-      /(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]/g
-    );
-    const joinRequirementsQuestion = await confirmator(
-      message,
-      "Would you like to setup server join requirements?"
-    );
+    const linkRegex = new RegExp(/(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]/g);
+    const serverLinksQuestion = await messageQuestionOrCancel(message, `Please enter the server(s) invite links with a space in between.`);
+    const serverRequirements = serverLinksQuestion.content.split(" ").filter(link => linkRegex.test(link)) || [];
 
-    let serverRequirements: string[] = [];
-    if (joinRequirementsQuestion) {
-      const questionMessage = await message.channel.send(
-        embeds.question(
-          `Please enter the server(s) invite links with a space in between.`
-        )
-      );
-
-      const messageCollector = await message.channel.awaitMessages(
-        (x) => x.author.id === message.author.id,
-        { max: 1, time: 900000, errors: ["time"] }
-      );
-
-      if (questionMessage.deletable) await questionMessage.delete();
-      if (!messageCollector?.size) return;
-
-      if (messageCollector.first().deletable)
-        await messageCollector.first().delete();
-
-      const serverRequirementsResponse = messageCollector.first().content;
-      const seperatedServerLinks = serverRequirementsResponse.split(" ");
-      for (const link of seperatedServerLinks) {
-        if (linkRegex.test(link)) {
-          serverRequirements.push(link);
-        }
-      }
+    return {
+      success: true,
+      prize: prizeQuestion.content,
+      winners: parseInt(winnersQuestion.content),
+      channel: channelsQuestion.first() as TextChannel,
+      cappedEntries: parseInt(cappedEntriesQuestion.content),
+      messageRequirements: parseInt(messageRequirementQuestion.content),
+      roleRequirements: Array.from(roleRequirementsQuestion.values()),
+      time: parsedTime,
+      endsAt: new Date(Date.now() + parsedTime),
+      roleMultipliers,
+      serverRequirements
     }
-
-    // Giveaway Constants
-    const channel = channels.first();
-    const prize = prizeQuestion.content;
-    const winners = parseInt(winnersQuestion.content);
-    const endsAt = new Date(Date.now() + parsedTime);
-
-    // Giveaway Requirements
-    const messageRequirement = parseInt(messageRequirementQuestion.content);
-
-    // Giveaway Embed
-    const giveawayMessage = await channel.send(
-      embeds.giveaway(
-        prize,
-        cappedEntries,
-        winners,
-        endsAt,
-        messageRequirement,
-        roleRequirements,
-        roleMultipliers
-      )
-    );
-    await giveawayMessage.react("🎉");
-
-    await GiveawayModel.create({
-      prize,
-      winners,
-      cappedEntries,
-      location: {
-        guildId: message.guild.id,
-        channelId: channel.id,
-        messageId: giveawayMessage.id,
-      },
-      endsAt,
-      requirements: {
-        messageRequirement,
-        roleRequirements: roleRequirements.map((x) => x.id),
-        multipliers: roleMultipliers,
-        serverRequirements,
-      },
-    });
   }
 }

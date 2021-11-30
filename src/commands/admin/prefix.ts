@@ -19,18 +19,22 @@ export default class PrefixCommand extends AdminCommands {
   ) {
     const prefix = args[0]?.toLowerCase();
     if (!prefix)
-      return message.channel.send(
-        embeds.error(`Please provide the prefix you would like to change to.`)
-      );
+      return message.channel.send({
+        embeds: [
+          embeds.error(`Please provide the prefix you would like to change to.`)
+        ]
+      });
 
     globalData.prefix = prefix;
     await globalData.save();
 
-    await message.channel.send(
-      embeds.normal(
-        `Prefix Changed`,
-        `The prefix of the bot has been changed to: **${prefix}**`
-      )
-    );
+    await message.channel.send({
+      embeds: [
+        embeds.normal(
+          `Prefix Changed`,
+          `The prefix of the bot has been changed to: **${prefix}**`
+        )
+      ]
+    });
   }
 }

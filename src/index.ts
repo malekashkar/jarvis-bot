@@ -20,7 +20,6 @@ import embeds from "./util/embed";
 import { DocumentType } from "@typegoose/typegoose";
 import { CodeInfo, GlobalModel } from "./models/global";
 import { Giveaway, GiveawayModel, Location } from "./models/giveaway";
-import moment from "moment";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -34,6 +33,7 @@ dotenv.config();
 
 // Login to the coinbase client
 CoinbaseClient.init(process.env.COINBASE_API);
+
 export default class Client extends BaseManager {
   commands: Collection<string, Command> = new Collection();
 
@@ -41,14 +41,12 @@ export default class Client extends BaseManager {
     super({
       ...options,
       partials: ["MESSAGE", "CHANNEL", "REACTION"],
-      ws: {
-        intents: [
-          "GUILDS",
-          "GUILD_MESSAGES",
-          "GUILD_MESSAGE_REACTIONS",
-          "GUILD_VOICE_STATES",
-        ],
-      },
+      intents: [
+        "GUILDS",
+        "GUILD_MESSAGES",
+        "GUILD_MESSAGE_REACTIONS",
+        "GUILD_VOICE_STATES",
+      ],
     });
 
     this.login(process.env.TOKEN);
@@ -105,12 +103,14 @@ export default class Client extends BaseManager {
           await globalData.save();
 
           if (user)
-            user.send(
-              embeds.normal(
-                `Payment Completed`,
-                `Please run the command \`${globalData.prefix}auth ${code}\` in order to gain access to your features.`
-              )
-            );
+            user.send({
+              embeds: [
+                embeds.normal(
+                  `Payment Completed`,
+                  `Please run the command \`${globalData.prefix}auth ${code}\` in order to gain access to your features.`
+                )
+              ]
+            });
 
           await OrderModel.deleteOne(infoData);
         }
@@ -130,19 +130,21 @@ export default class Client extends BaseManager {
         if (invoiceMessage?.deletable) invoiceMessage.delete();
         if (user)
           user
-            .send(
-              embeds.normal(
-                `Order Cancelled`,
-                `The order with checkout ID \`${infoData.invoiceMessageId}\` has been cancelled.`
-              )
-            )
+            .send({
+              embeds: [
+                embeds.normal(
+                  `Order Cancelled`,
+                  `The order with checkout ID \`${infoData.invoiceMessageId}\` has been cancelled.`
+                )
+              ]
+            })
             .catch(() => undefined);
       });
     }, 60 * 1000);
   }
 
   async giveawayInterval() {
-    this.setInterval(async () => {
+    setInterval(async () => {
       const ongoingGiveaways = GiveawayModel.find({
         ended: false,
         endsAt: { $gt: new Date() },
@@ -150,19 +152,21 @@ export default class Client extends BaseManager {
       ongoingGiveaways.on("data", async (giveaway: DocumentType<Giveaway>) => {
         const message = await this.locateMessage(giveaway.location);
         if (message) {
-          await message.edit(
-            embeds.giveaway(
-              giveaway.prize,
-              giveaway.cappedEntries,
-              giveaway.winners,
-              giveaway.endsAt,
-              giveaway.requirements.messageRequirement,
-              giveaway.requirements.roleRequirements.map((roleId) =>
-                message.guild.roles.resolve(roleId)
-              ),
-              giveaway.requirements.multipliers
-            )
-          );
+          await message.edit({
+            embeds: [
+              embeds.giveaway(
+                giveaway.prize,
+                giveaway.cappedEntries,
+                giveaway.winners,
+                giveaway.endsAt,
+                giveaway.requirements.messageRequirement,
+                giveaway.requirements.roleRequirements.map((roleId) =>
+                  message.guild.roles.resolve(roleId)
+                ),
+                giveaway.requirements.multipliers
+              )
+            ]
+          });
         } else {
           console.log(
             `Giveaway with message ID ${giveaway.location.messageId} has been automatically ended!`
@@ -182,10 +186,7 @@ export default class Client extends BaseManager {
 
         const message = await this.locateMessage(giveaway.location);
         if (message) {
-          let entries = message.reactions?.cache
-            .get("🎉")
-            ?.users?.cache?.filter((x) => !x.bot)
-            .array();
+          let entries = Array.from(message.reactions.cache.get("🎉").users.cache.filter(x => !x.bot).values());
           if (entries?.length) {
             let possibleWinners: string[] = entries.map((x) => x.id);
 
@@ -212,34 +213,40 @@ export default class Client extends BaseManager {
 
             const stringWinners = giveawayWinners.join(", ");
             if (giveawayWinners.length) {
-              await message.edit(
-                embeds.giveaway(
-                  giveaway.prize,
-                  giveaway.cappedEntries,
-                  giveaway.winners,
-                  giveaway.endsAt,
-                  giveaway.requirements.messageRequirement,
-                  giveaway.requirements.roleRequirements.map((roleId) =>
-                    message.guild.roles.resolve(roleId)
-                  ),
-                  giveaway.requirements.multipliers
-                )
-              );
-              await message.channel.send(
-                `${stringWinners}`,
-                embeds.normal(
-                  `Giveaway Ended`,
-                  `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** ${stringWinners}`
-                )
-              );
+              await message.edit({
+                embeds: [
+                  embeds.giveaway(
+                    giveaway.prize,
+                    giveaway.cappedEntries,
+                    giveaway.winners,
+                    giveaway.endsAt,
+                    giveaway.requirements.messageRequirement,
+                    giveaway.requirements.roleRequirements.map((roleId) =>
+                      message.guild.roles.resolve(roleId)
+                    ),
+                    giveaway.requirements.multipliers
+                  )
+                ]
+              });
+              await message.channel.send({
+                content: stringWinners,
+                embeds: [
+                  embeds.normal(
+                    `Giveaway Ended`,
+                    `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** ${stringWinners}`
+                  )
+                ]
+              })
             }
           } else {
-            await message.channel.send(
-              embeds.normal(
-                `Giveaway Ended`,
-                `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** Not enough people entered the giveaway!`
-              )
-            );
+            await message.channel.send({
+              embeds: [
+                embeds.normal(
+                  `Giveaway Ended`,
+                  `🎁 **Prize** ${giveaway.prize}\n👥 **Winners** Not enough people entered the giveaway!`
+                )
+              ]
+            });
           }
         }
       });
@@ -329,10 +336,8 @@ export default class Client extends BaseManager {
 
       try {
         const eventObj: Event = new event(this);
-        if (eventObj && eventObj.eventName) {
-          this.addListener(eventObj.eventName, async (...args) =>
-            eventObj.handle.bind(eventObj)(...args, eventObj.eventName)
-          );
+        if (eventObj?.eventName) {
+          this.on(eventObj.eventName, (...args) => eventObj.handle(...args))
         }
       } catch (ignored) {}
     }

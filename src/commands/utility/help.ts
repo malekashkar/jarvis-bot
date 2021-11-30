@@ -17,12 +17,12 @@ export default class DashCommand extends UtilityCommands {
 
   async run(
     message: Message,
-    args: string[],
+    _args: string[],
     userData: DocumentType<User>,
     globalData: DocumentType<Global>
   ) {
     const help: Collection<string, IGroup> = new Collection();
-    for (const commandObj of this.client.commands.array()) {
+    for (const commandObj of Array.from(this.client.commands.values())) {
       if (!commandObj.groupName) continue;
       if (
         commandObj.permission &&
@@ -43,16 +43,17 @@ export default class DashCommand extends UtilityCommands {
     }
 
     let i = 0;
-    const categories = help.keyArray();
+    const categories = Array.from(help.keys());
     const categoryEmojis = emojis.slice(0, categories.length);
 
-    const dashMessage = await message.channel.send(
-      new MessageEmbed()
+    const dashMessage = await message.channel.send({
+      embeds: [
+        new MessageEmbed()
         .setTitle(`Jarvis Help Menu`)
         .addFields(
           help.map((value, key) => {
             return {
-              name: `${categoryEmojis[i++]} ${key}`,
+              name: categoryEmojis[i++] + ` ${key}`,
               value: `${value.commands
                 .map((x) => `${globalData.prefix}${x}`)
                 .join("\n")}`,
@@ -61,15 +62,18 @@ export default class DashCommand extends UtilityCommands {
           })
         )
         .setColor("RANDOM")
-    );
+      ]
+    });
     for (const emoji of categoryEmojis) {
       await dashMessage.react(emoji);
     }
 
-    const categoryReaction = await dashMessage.awaitReactions(
-      (r, u) => u.id === message.author.id && emojis.includes(r.emoji.name),
-      { max: 1, time: 900000, errors: ["time"] }
-    );
+    const categoryReaction = await dashMessage.awaitReactions({
+      filter: (r, u) => u.id === message.author.id && emojis.includes(r.emoji.name),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
     if (!categoryReaction) return;
     if (message.channel instanceof TextChannel)
       await dashMessage.reactions.removeAll();
@@ -77,17 +81,19 @@ export default class DashCommand extends UtilityCommands {
     const chosenCategory =
       categories[categoryEmojis.indexOf(categoryReaction.first().emoji.name)];
     const category = help.get(chosenCategory);
-    dashMessage.edit(
-      embeds.normal(
-        chosenCategory + " Menu",
-        category.commands
-          .map(
-            (x, i) =>
-              `**${globalData.prefix}${x}** ~ ${category.descriptions[i]}`
-          )
-          .join("\n")
-      )
-    );
+    dashMessage.edit({
+      embeds: [
+        embeds.normal(
+          chosenCategory + " Menu",
+          category.commands
+            .map(
+              (x, i) =>
+                `**${globalData.prefix}${x}** ~ ${category.descriptions[i]}`
+            )
+            .join("\n")
+        )
+      ]
+    });
   }
 }
 
