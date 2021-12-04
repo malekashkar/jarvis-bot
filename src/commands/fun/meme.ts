@@ -1,13 +1,16 @@
-import { Message, MessageAttachment } from "discord.js";
+import { CommandInteraction, MessageAttachment } from "discord.js";
 import FunCommands from ".";
 import { imgurImage } from "../../util";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class MemeCommand extends FunCommands {
-  cmdName = "meme";
-  description = "Looks like you can use some memes right now?";
+  slashCommand = new SlashCommandBuilder()
+    .setName("meme")
+    .setDescription("Looks like you can use some memes right now.");
+    
   permission = "ACCESS";
 
-  async run(message: Message) {
-    await message.channel.send({ embeds: [new MessageAttachment(await imgurImage("meme"))] });
+  async run(interaction: CommandInteraction) {
+    await interaction.reply({ embeds: [new MessageAttachment(await imgurImage("meme"))] });
   }
 }

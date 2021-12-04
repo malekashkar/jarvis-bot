@@ -1,32 +1,31 @@
-import { Message } from "discord.js";
+import { Interaction } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import { GuildModel, Guild as DbGuild } from "../models/guild";
-import settings from "../settings";
 import Event, { Groups } from ".";
 import { permissionCheck } from "../util";
 import { DocumentType } from "@typegoose/typegoose";
 import { StatsModel } from "../models/stats";
 
 export default class CommandHandler extends Event {
-  eventName = "message";
+  eventName = "interactionCreate";
   groupName: Groups = "default";
 
-  async handle(message: Message) {
-    if (message.author.bot && settings.vision_id !== message.author.id) return;
+  async handle(interaction: Interaction) {
+    if(!interaction.isCommand()) return;
 
     const userData =
-      (await UserModel.findOne({ userId: message.author.id })) ||
-      (await UserModel.create({ userId: message.author.id }));
+      (await UserModel.findOne({ userId: interaction.user.id })) ||
+      (await UserModel.create({ userId: interaction.user.id }));
 
     const statsData =
       (await StatsModel.findOne({
-        userId: message.author.id,
-        guildId: message.guild.id,
+        userId: interaction.user.id,
+        guildId: interaction.guildId,
       })) ||
       (await StatsModel.create({
-        userId: message.author.id,
-        guildId: message.guild.id,
+        userId: interaction.user.id,
+        guildId: interaction.guildId,
       }));
 
     statsData.messages += 1;
@@ -36,40 +35,31 @@ export default class CommandHandler extends Event {
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
     let guildData: DocumentType<DbGuild>;
-    if (message.guild) {
+    if (interaction.guild) {
       guildData =
-        (await GuildModel.findOne({ guildId: message.guild.id })) ||
-        (await GuildModel.create({ guildId: message.guild.id }));
+        (await GuildModel.findOne({ guildId: interaction.guildId })) ||
+        (await GuildModel.create({ guildId: interaction.guildId }));
     }
 
-    if (message.content.indexOf(globalData.prefix) === 0) {
-      const args = message.content
-        .slice(globalData.prefix.length)
-        .trim()
-        .replace(/ /g, "\n")
-        .split(/\n+/g);
-      const command = args.shift().toLowerCase();
-
-      for (const commandObj of Array.from(this.client.commands.values())) {
-        if (commandObj.disabled) continue;
+    const command = interaction.commandName;
+    for (const commandObj of Array.from(this.client.commands.values())) {
+      if (commandObj.disabled) continue;
+      if (
+        commandObj.slashCommand.name.toLowerCase() === command.toLowerCase() ||
+        commandObj.aliases
+          .map((x) => x.toLowerCase())
+          .includes(command.toLowerCase())
+      ) {
         if (
-          commandObj.cmdName.toLowerCase() === command.toLowerCase() ||
-          commandObj.aliases
-            .map((x) => x.toLowerCase())
-            .includes(command.toLowerCase())
-        ) {
-          if (
-            commandObj.permission &&
-            !permissionCheck(
-              userData,
-              commandObj.permission,
-              commandObj.groupName
-            )
+          commandObj.permission &&
+          !permissionCheck(
+            userData,
+            commandObj.permission,
+            commandObj.groupName
           )
-            return;
-          if (message.channel.type == "GUILD_TEXT") message.delete();
-          commandObj.run(message, args, userData, globalData, guildData);
-        }
+        )
+          return;
+        commandObj.run(interaction, userData, globalData, guildData);
       }
     }
   }

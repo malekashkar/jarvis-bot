@@ -1,24 +1,27 @@
-import { Message, TextChannel } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import { CommandInteraction, TextChannel } from "discord.js";
 import ModCommands from ".";
 import embeds from "../../util/embed";
 
 export default class CleanCommand extends ModCommands {
-  cmdName = "clean";
-  description = "Delete messages from a channel.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("clean")
+    .setDescription("Delete messages from a channel.");
+
   aliases = ["purge"];
   permission = "ACCESS";
 
-  async run(message: Message) {
-    const userQuestion = await message.channel.send({
+  async run(interaction: CommandInteraction) {
+    const userQuestion = await interaction.channel.send({
       embeds: [
         embeds.question(
           `Would you like to clear a users messages? Say "no" if not.`
         )
       ]
     });
-    const userReponse = await message.channel.awaitMessages({
+    const userReponse = await interaction.channel.awaitMessages({
       filter: (x) =>
-        (x.author.id === message.author.id && x.content.includes("no")) || x.mentions.users.size > 0,
+        (x.author.id === interaction.user.id && x.content.includes("no")) || x.mentions.users.size > 0,
       max: 1, 
       time: 900000, 
       errors: ["time"]
@@ -32,11 +35,11 @@ export default class CleanCommand extends ModCommands {
     if (userQuestion.deletable) userQuestion.delete();
     if (userReponse.first().deletable) userReponse.first().delete();
 
-    const amountQuestion = await message.channel.send({
+    const amountQuestion = await interaction.channel.send({
       embeds: [embeds.question(`How many messages would you like to delete? Up to 100.`)]
     });
-    const amountResponse = await message.channel.awaitMessages({
-      filter: (x) => x.author.id === message.author.id && /[0-9]/gm.test(x.content),
+    const amountResponse = await interaction.channel.awaitMessages({
+      filter: (x) => x.author.id === interaction.user.id && /[0-9]/gm.test(x.content),
       max: 1, 
       time: 900 * 1000, 
       errors: ["time"]
@@ -51,8 +54,8 @@ export default class CleanCommand extends ModCommands {
         ? 100
         : parseInt(amountResponse.first().content.match(/[0-9]/gm).join(""));
 
-    const channel = message.channel as TextChannel;
-    const messages = await message.channel.messages.fetch({
+    const channel = interaction.channel as TextChannel;
+    const messages = await interaction.channel.messages.fetch({
       limit: amount,
     });
 

@@ -1,17 +1,20 @@
-import { Message, TextChannel, User } from "discord.js";
-import Command, { Groups } from "..";
+import { CommandInteraction, User } from "discord.js";
 import { GiveawayModel } from "../../models/giveaway";
 import embeds from "../../util/embed";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import GiveawayCommands from ".";
 
-export default class RerollCommand extends Command {
-  groupName: Groups = "giveaways";
-  cmdName = "reroll";
-  description = "Reroll a past giveaway using it's message ID.";
+export default class RerollCommand extends GiveawayCommands {
+  slashCommand = new SlashCommandBuilder()
+    .setName("reroll")
+    .setDescription("Reroll a past giveaway using it's message ID.")
+    .addStringOption(sub =>
+      sub.setName("message id").setDescription("The ID of the giveaway message.").setRequired(true));
 
-  async run(message: Message, args: string[]) {
-    const messageId = args[0];
+  async run(interaction: CommandInteraction) {
+    const messageId = interaction.options.getString("message id");
     if (!messageId)
-      return message.channel.send({
+      return interaction.reply({
         embeds: [embeds.error(`Please provide the message ID of the giveaway.`)]
       });
 
@@ -19,8 +22,8 @@ export default class RerollCommand extends Command {
       "location.messageId": messageId,
     });
     if (giveaway) {
-      if (giveaway.location?.guildId !== message.guild.id)
-        return message.channel.send({
+      if (giveaway.location?.guildId !== interaction.guildId)
+        return interaction.reply({
           embeds: [embeds.error(`You cannot reroll giveaways from other guilds!`)]
         });
 
@@ -57,7 +60,7 @@ export default class RerollCommand extends Command {
           }
 
           if (giveawayWinners.length) {
-            await gMessage.channel.send({
+            await interaction.channel.send({
               content: `${giveawayWinners.map((x) => x.toString()).join(", ")}`,
               embeds: [
                 embeds.normal(
@@ -73,7 +76,7 @@ export default class RerollCommand extends Command {
             );
           }
         } else {
-          await gMessage.channel.send({
+          await interaction.channel.send({
             embeds: [
               embeds.normal(
                 `Giveaway Ended`,
@@ -83,12 +86,12 @@ export default class RerollCommand extends Command {
           });
         }
       } else {
-        return message.channel.send({
+        return interaction.channel.send({
           embeds: [embeds.error(`The giveaway message could not be located!`)]
         });
       }
     } else {
-      return message.channel.send({
+      return interaction.reply({
         embeds: [
           embeds.error(
             `No giveaway could be found with the message ID \`${messageId}\`.`

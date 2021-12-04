@@ -8,9 +8,7 @@ import fetch from "node-fetch";
 
 dotenv.config({ path: path.join(__dirname, "..", "..", ".env") });
 
-export function toTitleCase(str: string) {
-  return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
-}
+export const toTitleCase = (str: String) => str.charAt(0).toUpperCase() + str.slice(1).toLowerCase();
 
 export async function imgurImage(query: string) {
   const response = await fetch(`https://imgur.com/r/${query}/hot.json`);
@@ -18,9 +16,7 @@ export async function imgurImage(query: string) {
 
   const data = await response.json();
   const randomData = data.data[Math.floor(Math.random() * data.data.length)];
-  const imageLink = `https://i.imgur.com/${randomData.hash}${randomData.ext}`;
-
-  return imageLink;
+  return `https://i.imgur.com/${randomData.hash}${randomData.ext}`;
 }
 
 export const emojis: string[] = [
@@ -83,8 +79,6 @@ export function permissionCheck(
 
   return true;
 }
-
-// MS Recode
  
 export function parseToInteger(str: string) {
    let match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(

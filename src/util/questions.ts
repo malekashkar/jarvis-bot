@@ -1,14 +1,14 @@
-import { Message } from "discord.js";
+import { CommandInteraction, Interaction, Message } from "discord.js";
 import embeds from "./embed";
 import { emojis as emojiList } from "./index";
 
 export async function confirmator(
-  message: Message,
+  interaction: CommandInteraction,
   confirmationMessage: string,
   userId?: string
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({
     embeds: [embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)]
   });
   for (const emoji of ["✅", "❎"]) {
@@ -60,15 +60,15 @@ export async function optionReactQuestion(
 }
 
 export async function messageQuestion(
-  message: Message,
+  interaction: Interaction,
   question: string,
   userId?: string,
   options?: string[]
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages({
+  const messageCollector = await interaction.channel.awaitMessages({
     filter: (x) =>
       x.author.id === reactionUserId &&
       (options && options.length ? options.includes(x.content) : true),
@@ -85,15 +85,15 @@ export async function messageQuestion(
 }
 
 export async function messageQuestionOrCancel(
-  message: Message,
+  interaction: Interaction,
   question: string,
   userId?: string,
   options?: string[]
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages({
+  const messageCollector = await interaction.channel.awaitMessages({
     filter: (x) =>
       x.author.id === reactionUserId &&
       (options && options.length ? options.includes(x.content) : true),
@@ -110,14 +110,14 @@ export async function messageQuestionOrCancel(
 }
 
 export async function getTaggedUsers(
-  message: Message,
+  interaction: CommandInteraction,
   question: string,
   userId?: string
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages({
+  const messageCollector = await interaction.channel.awaitMessages({
     filter: (x) =>
       x.author.id === reactionUserId &&
       x.mentions.users.size > 0,
@@ -134,14 +134,14 @@ export async function getTaggedUsers(
 }
 
 export async function getTaggedRoles(
-  message: Message,
+  interaction: Interaction,
   question: string,
   userId?: string
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages({
+  const messageCollector = await interaction.channel.awaitMessages({
     filter: (x) =>
       x.author.id === reactionUserId &&
       x.mentions.roles.size > 0,
@@ -158,12 +158,12 @@ export async function getTaggedRoles(
 }
 
 export async function getTaggedRolesOrCancel(
-  message: Message,
+  interaction: Interaction,
   question: string,
   userId?: string
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({
     embeds: [embeds.question(question)]
   });
 
@@ -171,7 +171,7 @@ export async function getTaggedRolesOrCancel(
 
   const reactionCollector = await questionMessage.awaitReactions()
 
-  const messageCollector = await message.channel.awaitMessages({
+  const messageCollector = await interaction.channel.awaitMessages({
     filter: (x) =>
       x.author.id === reactionUserId &&
       x.mentions.roles.size > 0,
@@ -188,14 +188,14 @@ export async function getTaggedRolesOrCancel(
 }
 
 export async function getTaggedChannels(
-  message: Message,
+  interaction: Interaction,
   question: string,
   userId?: string
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await message.channel.awaitMessages({
+  const messageCollector = await interaction.channel.awaitMessages({
     filter: (x) =>
       x.author.id === reactionUserId &&
       x.mentions.channels.size > 0,

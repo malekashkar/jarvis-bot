@@ -1,15 +1,18 @@
 import FunCommands from ".";
-import { Message, MessageEmbed } from "discord.js";
+import { CommandInteraction, Message, MessageEmbed } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class ColorCommand extends FunCommands {
-  cmdName = "color";
-  description = "Receive a random color.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("color")
+    .setDescription("Receive a random HEX color.");
+    
   aliases = ["randomcolor"];
   permission = "ACCESS";
 
-  async run(message: Message) {
+  async run(interaction: CommandInteraction) {
     const color = Math.floor(Math.random()*16777215).toString(16);
-    await message.channel.send({
+    await interaction.reply({
       embeds: [
         new MessageEmbed()
           .setTitle(color)

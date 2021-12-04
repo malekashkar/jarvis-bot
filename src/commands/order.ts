@@ -1,5 +1,5 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { DMChannel, Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import User from "../models/user";
 import { emojis } from "../util";
 import embeds from "../util/embed";
@@ -8,32 +8,34 @@ import _ from "lodash";
 import Order, { OrderModel } from "../models/order";
 import Global from "../models/global";
 import Command, { Groups } from ".";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class OrderCommand extends Command {
-  cmdName = "order";
-  description = "Order modules from Jarvis!";
+  slashCommand = new SlashCommandBuilder()
+    .setName("order")
+    .setDescription("Order modules to use on Jarvis!");
+    
   groupName: Groups = "default";
 
   async run(
-    message: Message,
-    args: string[],
+    interaction: CommandInteraction,
     userData: DocumentType<User>,
     guildData: DocumentType<Global>
   ) {
-    if (!(message.channel instanceof DMChannel))
-      return message.channel.send({
+    if (!(interaction.channel.type == "DM"))
+      return interaction.reply({
         embeds: [embeds.error(`You can only use this command in our DM's!`)]
       });
     else if (userData.access)
-      return message.channel.send({
+      return interaction.reply({
         embeds: [embeds.error(`You already have access to this discord bot!`)]
       });
 
     const orderData = await OrderModel.findOne({
-      userId: message.author.id,
+      userId: interaction.user.id,
     });
     if (orderData)
-      return await message.channel.send({
+      return await interaction.reply({
         embeds: [embeds.error(`You already have an order open!`)]
       });
 
@@ -47,7 +49,7 @@ export default class OrderCommand extends Command {
       .map((x, i) => `${emojis[i]} ${x}`)
       .join("\n");
 
-    const modulesQuestion = await message.channel.send({
+    const modulesQuestion = await interaction.channel.send({
       embeds: [
         embeds.question(
           `Which modules would you like to install?\n\n${modulesDescription}`
@@ -59,7 +61,7 @@ export default class OrderCommand extends Command {
     }
 
     const collector = await modulesQuestion.awaitReactions({
-      filter: (r, u) => u.id === message.author.id && r.emoji.name === "✅",
+      filter: (r, u) => u.id === interaction.user.id && r.emoji.name === "✅",
       max: 1,
       time: 10 * 60 * 1000,
       errors: ["time"],
@@ -81,7 +83,7 @@ export default class OrderCommand extends Command {
         .reduce((a, b) => a + b, 0);
 
       const charge = new coinbase.resources.Charge({
-        name: message.author.username,
+        name: interaction.user.username,
         description: `Order the modules ${selectedModules.join(
           ", "
         )} on Jarvis bot.`,
@@ -94,7 +96,7 @@ export default class OrderCommand extends Command {
       try {
         await charge.save();
 
-        const invoiceMessage = await message.channel.send({
+        const invoiceMessage = await interaction.channel.send({
           embeds: [
             embeds
             .normal(
@@ -107,7 +109,7 @@ export default class OrderCommand extends Command {
 
         await OrderModel.create(
           new Order(
-            message.author.id,
+            interaction.user.id,
             charge.id,
             invoiceMessage.id,
             selectedModules as Groups[],
@@ -116,7 +118,7 @@ export default class OrderCommand extends Command {
         );
       } catch (err) {
         console.log(err);
-        message.channel.send({
+        interaction.reply({
           embeds: [
             embeds.error(
               `There was an error creating your order, please contact administration!`

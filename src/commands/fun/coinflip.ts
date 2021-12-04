@@ -1,16 +1,19 @@
 import FunCommands from ".";
-import { Message, MessageAttachment } from "discord.js";
+import { CommandInteraction, MessageAttachment } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class CoinflipCommand extends FunCommands {
-  cmdName = "coinflip";
-  description = "Flip a coin and receive a random side.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("coinflip")
+    .setDescription("Flip a coin and receive a random side.");
+    
   aliases = ["flip"];
   permission = "ACCESS";
 
-  async run(message: Message) {
+  async run(interaction: CommandInteraction) {
     const random = ["heads", "tails"][Math.floor(Math.random() * 2)];
 
-    await message.channel.send({
+    await interaction.reply({
       attachments: [
         new MessageAttachment(
           random === "heads"

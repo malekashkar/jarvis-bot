@@ -1,31 +1,36 @@
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import AdminCommands from ".";
 import coinbase from "coinbase-commerce-node";
 import embeds from "../../util/embed";
 import { confirmator } from "../../util/questions";
+import { SlashCommandBuilder } from "@discordjs/builders"
 
 export default class PayCommand extends AdminCommands {
-  cmdName = "pay";
-  description = "Create a new invoice for a payment.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("pay")
+    .setDescription("Create a new invoice for a payment.")
+    .addNumberOption(option =>
+      option.setName("amount").setDescription("The price of the invoice.").setRequired(true));
+
   permission = "OWNER";
 
-  async run(message: Message, args: string[]) {
-    const price = !isNaN(parseInt(args[0])) ? parseInt(args[0]) : null;
+  async run(interaction: CommandInteraction) {
+    const price = interaction.options.getNumber("amount");
     if (!price)
-      return message.channel.send({
+      return interaction.reply({
         embeds: [
           embeds.error(`Please provide a number value for the price!`)
         ]
       });
 
     const confirm = await confirmator(
-      message,
+      interaction,
       `Are you sure you would like to create this invoice?`
     );
 
     if (confirm) {
       const charge = new coinbase.resources.Charge({
-        name: message.author.username,
+        name: interaction.user.username,
         description: `Invoice payment for ${price} on Jarvis bot.`,
         pricing_type: "fixed_price",
         local_price: {
@@ -36,7 +41,7 @@ export default class PayCommand extends AdminCommands {
       try {
         await charge.save();
 
-        message.channel.send({
+        interaction.reply({
           embeds: [
             embeds.normal(
               `Invoice Created`,
@@ -46,7 +51,7 @@ export default class PayCommand extends AdminCommands {
         });
       } catch (err) {
         console.log(err);
-        message.channel.send({
+        interaction.reply({
           embeds: [
             embeds.error(
               `There was an error creating your invoice, please contact administration!`

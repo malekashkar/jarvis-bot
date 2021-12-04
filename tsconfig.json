@@ -13,6 +13,7 @@
     "sourceMap": false,
     "experimentalDecorators": true,
     "emitDecoratorMetadata": true,
+    "checkJs": true
   },
   "include": ["src/**/*"]
 }

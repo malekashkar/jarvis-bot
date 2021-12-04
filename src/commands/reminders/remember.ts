@@ -1,20 +1,23 @@
 import ReminderCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import User from "../../models/user";
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
 import embeds from "../../util/embed";
 import { messageQuestion } from "../../util/questions";
 import ms from "ms";
 import { Reminder } from "../../models/user";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class RememberCommand extends ReminderCommands {
-  cmdName = "remember";
-  description = "Create a new reminder.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("remember")
+    .setDescription("Create a new reminder for yourself.")
+  
   aliases = ["rem"];
   permission = "ACCESS";
 
-  async run(message: Message, args: string[], userData: DocumentType<User>) {
-    const typeQuestion = await message.channel.send({
+  async run(interaction: CommandInteraction, userData: DocumentType<User>) {
+    const typeQuestion = await interaction.channel.send({
       embeds: [
         embeds.normal(
           "Reminder Settings",
@@ -28,7 +31,7 @@ export default class RememberCommand extends ReminderCommands {
 
     const reactionCollector = await typeQuestion.awaitReactions({
       filter: (r, u) =>
-        ["🕐", "⏱️", "🔒"].includes(r.emoji.name) && u.id === message.author.id,
+        ["🕐", "⏱️", "🔒"].includes(r.emoji.name) && u.id === interaction.user.id,
       max: 1,
       time: 900000,
       errors: ["time"]
@@ -38,15 +41,15 @@ export default class RememberCommand extends ReminderCommands {
     const reaction = reactionCollector.first();
 
     if (reaction.emoji.name === "🕐") {
-      const idQuestion = await message.channel.send({
+      const idQuestion = await interaction.channel.send({
         embeds: [
           embeds.question(
             `What reminder would you like to be reminded with? (Provide the ID)`
           )
         ]
       });
-      const idResponse = await message.channel.awaitMessages({
-        filter: (x) => x.author.id === message.author.id && /[0-9]{4}/gm.test(x.content),
+      const idResponse = await interaction.channel.awaitMessages({
+        filter: (x) => x.author.id === interaction.user.id && /[0-9]{4}/gm.test(x.content),
         max: 1,
         time: 900000,
         errors: ["time"]
@@ -54,15 +57,15 @@ export default class RememberCommand extends ReminderCommands {
       if (!idResponse) return;
 
       if (idQuestion.deletable) idQuestion.delete();
-      const timeQuestion = await message.channel.send({
+      const timeQuestion = await interaction.channel.send({
         embeds: [
           embeds.question(
             `When would you like to be reminded? (ex. 2020/02/07 15:13:06)`
           )
         ]
       });
-      const timeResponse = await message.channel.awaitMessages({
-        filter: (x) => x.author.id === message.author.id,
+      const timeResponse = await interaction.channel.awaitMessages({
+        filter: (x) => x.author.id === interaction.user.id,
         max: 1,
         time: 900000,
         errors: ["time"],
@@ -76,12 +79,12 @@ export default class RememberCommand extends ReminderCommands {
       const id = parseInt(idResponse.first().content);
       const reminder = userData.reminders.find((x) => x.id === id);
       if (!reminder)
-        return message.channel.send({
+        return interaction.reply({
           embeds: [embeds.error(`There is no reminder with that ID available!`)]
         });
 
       setTimeout(() => {
-        message.author.send({
+        interaction.user.send({
           embeds: [
             embeds
             .normal(`Reminder!`, `Reminder: **${reminder.message}**`)
@@ -96,7 +99,7 @@ export default class RememberCommand extends ReminderCommands {
         });
       }, time);
 
-      message.channel.send({
+      interaction.reply({
         embeds: [
           embeds.normal(
             "Reminder Saved - Stopwatch",
@@ -106,7 +109,7 @@ export default class RememberCommand extends ReminderCommands {
       });
     } else if (reaction.emoji.name === "⏱️") {
       const idQuestion = await messageQuestion(
-        message,
+        interaction,
         `What reminder would you like to be reminded with? (Provide the ID)`
       );
       if (!idQuestion) return;
@@ -114,24 +117,24 @@ export default class RememberCommand extends ReminderCommands {
       const id = parseInt(idQuestion.content);
       const reminder = userData.reminders.find((x) => x.id === id);
       if (!id || !reminder)
-        return message.channel.send({
+        return interaction.reply({
           embeds: [embeds.error(`There is no reminder with that ID available!`)]
         });
 
       const time = await messageQuestion(
-        message,
+        interaction,
         `In how long should you be notified? (2d / 2w / 10h / 40s)`
       );
       if (!time) return;
 
       const timeMs = ms(time.content) || null;
       if (!timeMs)
-        return message.channel.send({
+        return interaction.reply({
           embeds: [embeds.error(`The time you provided is invalid!`)]
         });
 
       setTimeout(() => {
-        message.author.send({
+        interaction.user.send({
           embeds: [
             embeds
             .normal(`Reminder!`, `Reminder: **${reminder.message}**`)
@@ -146,7 +149,7 @@ export default class RememberCommand extends ReminderCommands {
         });
       }, timeMs);
 
-      message.channel.send({
+      interaction.reply({
         embeds: [
           embeds.normal(
             "Reminder Saved - Stopwatch",
@@ -156,19 +159,19 @@ export default class RememberCommand extends ReminderCommands {
       });
     } else if (reaction.emoji.name === "🔒") {
       const serverNumberQuestion = await messageQuestion(
-        message,
+        interaction,
         `What is the server number?`
       );
       if (!serverNumberQuestion) return;
 
       const reminderNameQuestion = await messageQuestion(
-        message,
+        interaction,
         `What should the name of the reminder be?`
       );
       if (!reminderNameQuestion) return;
 
       const msgQuestion = await messageQuestion(
-        message,
+        interaction,
         `What message would you like to remember?`
       );
       if (!msgQuestion) return;
@@ -179,7 +182,7 @@ export default class RememberCommand extends ReminderCommands {
 
       const guild = Array.from(this.client.guilds.cache.values())[parseInt(server) - 1];
       if (!guild)
-        return message.channel.send({
+        return interaction.reply({
           embeds: [
             embeds.error(
               `This bot does not have access to a server with number ${server}`
@@ -188,7 +191,7 @@ export default class RememberCommand extends ReminderCommands {
         });
       const id = Math.floor(Math.random() * 10000);
 
-      message.channel.send({
+      interaction.reply({
         embeds: [
           embeds
           .normal(`Reminder Saved - Permanent`, `Reminder: **${msg}**`)

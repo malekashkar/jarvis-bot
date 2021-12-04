@@ -1,21 +1,27 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { Message } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 import AdminCommands from ".";
 import Global, { ModulePrices } from "../../models/global";
 import User from "../../models/user";
 import embeds from "../../util/embed";
 import { confirmator } from "../../util/questions";
 import _ from "lodash";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class ModulePriceCommand extends AdminCommands {
-  cmdName = "prices";
-  description = "Change the prices of the modules";
+  slashCommand = new SlashCommandBuilder()
+    .setName("prices")
+    .setDescription("Change the prices of the modules.")
+    .addStringOption(sub =>
+      sub.setName("module name").setDescription("The module name.").setRequired(true))
+    .addNumberOption(sub =>
+      sub.setName("amount").setDescription("The new price of the module.").setRequired(true));
+
   permission = "OWNER";
 
   async run(
-    message: Message,
-    args: string[],
-    userData: DocumentType<User>,
+    interaction: CommandInteraction,
+    _userData: DocumentType<User>,
     globalData: DocumentType<Global>
   ) {
     const modules: string[] = _.sortedUniq(
@@ -24,25 +30,25 @@ export default class ModulePriceCommand extends AdminCommands {
         .filter((x) => !x.toLowerCase().includes("admin"))
     );
 
-    const moduleName = args[0]?.toLowerCase();
+    const moduleName = interaction.options.getString("module name").toLowerCase();
     if (!modules?.includes(moduleName))
-      return message.channel.send({
+      return interaction.reply({
         embeds: [
           embeds.error(
             `Please choose from the following modules: ${modules.join(", ")}`
           )
         ]
       });
-    const price = !isNaN(parseInt(args[0])) ? parseInt(args[0]) : null;
+    const price = interaction.options.getNumber("amount");
     if (!price)
-      return message.channel.send({
+      return interaction.reply({
         embeds: [
           embeds.error(`Please provide the new price of the module.`)
         ]
       });
 
     const confirm = await confirmator(
-      message,
+      interaction,
       `Are you sure you would like to change the price of the module **${moduleName}** to **$${price}**?`
     );
 
@@ -50,7 +56,7 @@ export default class ModulePriceCommand extends AdminCommands {
       globalData.modulePrices[moduleName as keyof ModulePrices] = price;
       await globalData.save();
 
-      return message.channel.send({
+      return interaction.reply({
         embeds: [
           embeds.normal(
             `Module Price Edited`,

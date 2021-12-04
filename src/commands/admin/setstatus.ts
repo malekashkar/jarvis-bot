@@ -1,25 +1,29 @@
 import AdminCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import { Message } from "discord.js";
+import { CommandInteraction } from "discord.js";
+import { SlashCommandBuilder } from "@discordjs/builders";
 import User from "../../models/user";
 import Global from "../../models/global";
 import embeds from "../../util/embed";
 
 export default class SetstatusCommand extends AdminCommands {
-  cmdName = "setstatus";
-  description = "Set the status of the bot.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("setstatus")
+    .setDescription("Set the status of the bot.")
+    .addStringOption(sub => 
+      sub.setName("status").setDescription("Enter the new status you would like to set.").setRequired(true));
+    
   aliases = ["status"];
   permission = "OWNER";
 
   async run(
-    message: Message,
-    args: string[],
-    userData: DocumentType<User>,
+    interaction: CommandInteraction,
+    _userData: DocumentType<User>,
     globalData: DocumentType<Global>
   ) {
-    const status = args.length ? args.join(" ") : null;
+    const status = interaction.options.getString("status");
     if (!status)
-      return message.channel.send({
+      return interaction.reply({
         embeds: [
           embeds.error(
             `Please provide the message you would like to set the status to!`
@@ -31,7 +35,7 @@ export default class SetstatusCommand extends AdminCommands {
     await globalData.save();
 
     this.client.user.setActivity(status, { type: "WATCHING" });
-    return message.channel.send({
+    return interaction.reply({
       embeds: [
         embeds.normal(
           `Status Changed`,

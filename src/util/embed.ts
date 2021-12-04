@@ -45,6 +45,10 @@ export default class embeds {
     return new MessageEmbed().setColor(settings.color);
   }
 
+  static guildCommand() {
+    return this.error("You may only use this command in a guild!")
+  }
+
   static giveaway(
     prize: string,
     cappedEntries: number,

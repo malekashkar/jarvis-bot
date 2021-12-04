@@ -1,15 +1,19 @@
 import UtilityCommands from ".";
-import { Message, MessageEmbed, GuildMember} from "discord.js";
+import { MessageEmbed, GuildMember, CommandInteraction} from "discord.js";
 import embeds from "../../util/embed";
 import { emojis } from "../../util";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class serverCommand extends UtilityCommands {
-  cmdName = "server";
-  description = "Get a list of all the servers or check a specific one.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("server")
+    .setDescription("Get a list of all servers or check a specific one.");
+
+  disabled = true;
   aliases = ["server", "guilds"];
   permission = "ACCESS";
 
-  async run(message: Message) {
+  async run(interaction: CommandInteraction) {
     const guilds = Array.from(this.client.guilds.cache.values());
     const guildEmojis = emojis.slice(0, guilds.length);
 
@@ -17,7 +21,7 @@ export default class serverCommand extends UtilityCommands {
       .map((x, i) => `${guildEmojis[i]} **${x.name}**`)
       .join("\n");
 
-    const msg = await message.channel.send({
+    const msg = await interaction.channel.send({
       embeds: [embeds.normal(`List of Servers`, guildsFormattedText)]
     });
     for (const emoji of guildEmojis) {
@@ -26,7 +30,7 @@ export default class serverCommand extends UtilityCommands {
 
     const reaction = await msg.awaitReactions({
       filter: (r, u) =>
-        u.id === message.author.id && guildEmojis.includes(r.emoji.name),
+        u.id === interaction.user.id && guildEmojis.includes(r.emoji.name),
       max: 1,
       time: 900 * 1000,
       errors: ["time"]
@@ -43,7 +47,7 @@ export default class serverCommand extends UtilityCommands {
     ).size;
     const botsMemberCount = members.filter((member: GuildMember) => member.user.bot).size;
 
-    await message.channel.send({
+    await interaction.reply({
       embeds: [
         new MessageEmbed()
         .setTitle(guild.name + ` Server Info`)

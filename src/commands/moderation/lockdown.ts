@@ -1,42 +1,34 @@
-import { Message, TextChannel, VoiceChannel, Permissions } from "discord.js";
+import { TextChannel, VoiceChannel, Permissions, CommandInteraction } from "discord.js";
 import embeds from "../../util/embed";
 import ModCommands from ".";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class LockdownCommand extends ModCommands {
-  cmdName = "lockdown";
-  description = "Lockdown a channels or a server.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("lockdown")
+    .setDescription("Lockdown multiple channels or the entire guild.")
+    .addStringOption(sub =>
+      sub.setName("lockdown type").setDescription("The type of lockdown you would like to initiate.").setRequired(true)
+        .addChoice("Server", "server")
+        .addChoice("Channel", "channel"));
+
   permission = "ACCESS";
 
-  async run(message: Message, args: string[]) {
-    if (!message.guild) return;
+  async run(interaction: CommandInteraction) {
+    if (!interaction.guild) return;
 
-    const option =
-      args[0]?.toLowerCase() === "server" ||
-      args[0]?.toLowerCase() === "servers"
-        ? "server"
-        : args[0]?.toLowerCase() === "channel"
-        ? "channel"
-        : null;
-    if (!option)
-      return message.channel.send({
-        embeds: [
-          embeds.error(
-            `Please provide **server/channel** as your first argument.`
-          )
-        ]
-      });
-
+    const option = interaction.options.getString("lockdown type");
     if (option === "server") {
-      for (const channel of message.guild.channels.cache) {
+      for (const channel of interaction.guild.channels.cache) {
         if (channel instanceof TextChannel || channel instanceof VoiceChannel)
           await lockChannel(channel);
       }
-      return message.channel.send({
+      return interaction.reply({
         embeds: [embeds.normal(`Operation Complete`, `The server has been locked down!`)]
       });
     } else {
-      await lockChannel(message.channel as TextChannel);
-      return message.channel.send({
+      await lockChannel(interaction.channel as TextChannel);
+      return interaction.reply({
         embeds: [
           embeds.normal(
             `Operation Complete`,

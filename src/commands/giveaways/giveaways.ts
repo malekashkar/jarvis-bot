@@ -1,5 +1,4 @@
-import { Message, TextChannel } from "discord.js";
-import Command, { Groups } from "..";
+import { CommandInteraction, TextChannel } from "discord.js";
 import { GiveawayModel, RoleMultiplier } from "../../models/giveaway";
 import { parseToInteger } from "../../util";
 import embeds from "../../util/embed";
@@ -9,16 +8,18 @@ import {
   getTaggedRolesOrCancel,
   messageQuestionOrCancel,
 } from "../../util/questions";
+import { SlashCommandBuilder } from "@discordjs/builders";
+import GiveawayCommands from ".";
 
-export default class GiveawayCommand extends Command {
-  groupName: Groups = "giveaways";
-  cmdName = "giveaways";
-  description =
-    "Setup a giveaway for multiple winners and a prize and restrictions.";
+export default class GiveawayCommand extends GiveawayCommands {
+  slashCommand = new SlashCommandBuilder()
+    .setName("giveaways")
+    .setDescription("Setup a giveaway for multiple winners and a prize and restrictions.");
+
   aliases = ["giveaway"];
 
-  async run(message: Message) {
-    const giveawaySettings = await this.giveawayCog(message);
+  async run(interaction: CommandInteraction) {
+    const giveawaySettings = await this.giveawayCog(interaction);
     if(giveawaySettings.success) {
       const giveawayMessage = await giveawaySettings.channel?.send({
         embeds: [
@@ -40,7 +41,7 @@ export default class GiveawayCommand extends Command {
         winners: giveawaySettings.winners,
         cappedEntries: giveawaySettings.cappedEntries,
         location: {
-          guildId: message.guild.id,
+          guildId: interaction.guildId,
           channelId: giveawaySettings.channel.id,
           messageId: giveawayMessage.id,
         },
@@ -53,38 +54,38 @@ export default class GiveawayCommand extends Command {
         },
       });
     } else {
-      message.channel.send({
+      interaction.reply({
         embeds: [embeds.error(giveawaySettings.error)]
       });
     }
   }
 
-  async giveawayCog(message: Message) {
-    const prizeQuestion = await messageQuestion(message, `What is the prize of the giveaway?`);
+  async giveawayCog(interaction: CommandInteraction) {
+    const prizeQuestion = await messageQuestion(interaction, `What is the prize of the giveaway?`);
     if(!prizeQuestion.content) return { success: false, error: "Please provide a prize for the user!" };
 
-    const winnersQuestion = await messageQuestion(message, `How many winners will the giveaway have?`);
+    const winnersQuestion = await messageQuestion(interaction, `How many winners will the giveaway have?`);
     if(!winnersQuestion.content) return null;
 
-    const channelsQuestion = await getTaggedChannels(message, `Tag the channel the giveaway should be located in.`);
+    const channelsQuestion = await getTaggedChannels(interaction, `Tag the channel the giveaway should be located in.`);
     if(channelsQuestion.size == 0) return null;
 
-    const cappedEntriesQuestion = await messageQuestion(message, `How many max entries can this giveaway have? (Enter 0 for unlimited)`);
+    const cappedEntriesQuestion = await messageQuestion(interaction, `How many max entries can this giveaway have? (Enter 0 for unlimited)`);
     if(!cappedEntriesQuestion.content) return null;
 
-    const unparsedTime = await messageQuestion(message, `How long should this giveaway last? (ex. 10m, 1h, 2d)`);
+    const unparsedTime = await messageQuestion(interaction, `How long should this giveaway last? (ex. 10m, 1h, 2d)`);
     if(!unparsedTime.content) return null;
 
-    const messageRequirementQuestion = await messageQuestion(message, `How many messages must a user have to enter? (Enter 0 for no requirement)`);
+    const messageRequirementQuestion = await messageQuestion(interaction, `How many messages must a user have to enter? (Enter 0 for no requirement)`);
     if(!messageRequirementQuestion.content) return null;
 
-    const roleRequirementsQuestion = await getTaggedRolesOrCancel(message, `Please tag all the roles a user needs before entering a giveaway.`);
+    const roleRequirementsQuestion = await getTaggedRolesOrCancel(interaction, `Please tag all the roles a user needs before entering a giveaway.`);
     if(roleRequirementsQuestion.size == 0) return null;
     
     const parsedTime = parseToInteger(unparsedTime.content);
     if(!parsedTime) return null;
 
-    const roleMultiplierQuestion = await messageQuestionOrCancel(message, `Tag the roles that should have bonus entries/entry multipliers.\n\`Example: @role 2, @role2 6, @role3 3\``);
+    const roleMultiplierQuestion = await messageQuestionOrCancel(interaction, `Tag the roles that should have bonus entries/entry multipliers.\n\`Example: @role 2, @role2 6, @role3 3\``);
     const roleMultipliers = 
       roleMultiplierQuestion.content
         .split(",")
@@ -98,7 +99,7 @@ export default class GiveawayCommand extends Command {
 
     // Server Join Requirements
     const linkRegex = new RegExp(/(https?:\/\/)?(www\.)?(discord\.(gg|io|me|li)|discordapp\.com\/invite)\/.+[a-z]/g);
-    const serverLinksQuestion = await messageQuestionOrCancel(message, `Please enter the server(s) invite links with a space in between.`);
+    const serverLinksQuestion = await messageQuestionOrCancel(interaction, `Please enter the server(s) invite links with a space in between.`);
     const serverRequirements = serverLinksQuestion.content.split(" ").filter(link => linkRegex.test(link)) || [];
 
     return {

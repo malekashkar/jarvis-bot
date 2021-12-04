@@ -1,5 +1,5 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { Message, TextChannel, Permissions } from "discord.js";
+import { Message, TextChannel, Permissions, CommandInteraction } from "discord.js";
 import FridayCommands from ".";
 import Global from "../../models/global";
 import { Guild, Roles } from "../../models/guild";
@@ -11,38 +11,39 @@ import {
 } from "../../util/questions";
 import ms from "ms";
 import embeds from "../../util/embed";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class SetupCommand extends FridayCommands {
-  cmdName = "setup";
-  description = "Setup a role with friday on your discord server.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("setup")
+    .setDescription("Setup a role with Friday on your discord server.");
 
   async run(
-    message: Message,
-    _args: string[],
+    interaction: CommandInteraction,
     _userData: DocumentType<User>,
     _globalData: DocumentType<Global>,
     guildData: DocumentType<Guild>
   ) {
     const roles = await getTaggedRoles(
-      message,
+      interaction,
       `Please tag the role you would like to setup.`
     );
     if (!roles) return;
 
     const channels = await getNumberedChannels(
-      message,
+      interaction,
       `What channels would you like this role to have access to?`
     );
     if (!channels) return;
 
     const cooldownQuestion = await messageQuestion(
-      message,
+      interaction,
       `How long should the interval be between every ad this role can post?`
     );
     if (!cooldownQuestion) return;
 
     const autorole = await confirmator(
-      message,
+      interaction,
       `Would you like this role to be an autorole for when members join?`
     );
 
@@ -66,16 +67,15 @@ export default class SetupCommand extends FridayCommands {
 }
 
 export async function getNumberedChannels(
-  message: Message,
+  interaction: CommandInteraction,
   question: string,
   userId?: string
 ) {
-  const reactionUserId = userId || message.author.id;
-  const questionMessage = await message.channel.send({ embeds: [embeds.question(question)] });
+  const reactionUserId = userId || interaction.user.id;
+  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const filter = (message: Message) => message.author.id == reactionUserId;
-  const messageCollector = await message.channel.awaitMessages(
-    { filter, max: 1, time: 900000, errors: ["time"] }
+  const messageCollector = await interaction.channel.awaitMessages(
+    { filter: (m: Message) => m.author.id == reactionUserId, max: 1, time: 900000, errors: ["time"] }
   );
 
   if (questionMessage.deletable) await questionMessage.delete();

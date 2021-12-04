@@ -1,31 +1,33 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { Message } from "discord.js";
+import { CommandInteraction, Message } from "discord.js";
 import User from "../models/user";
 import Global, { ModulePrices } from "../models/global";
 import Client from "..";
 import { Guild } from "../models/guild";
+import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder, SlashCommandOptionsOnlyBuilder } from "@discordjs/builders";
 
 export type Groups = keyof ModulePrices;
 
 export default abstract class Command {
   permission: string;
   disabled = false;
-  usage = "";
   aliases: string[] = [];
   client: Client;
-
+    
   constructor(client: Client) {
     this.client = client;
   }
-
-  abstract cmdName: string;
-  abstract description: string;
+  
   abstract groupName: Groups;
+  abstract slashCommand: SlashCommandBuilder |
+    SlashCommandSubcommandsOnlyBuilder |
+    SlashCommandOptionsOnlyBuilder |
+    Omit<SlashCommandBuilder, 'addSubcommand' | 'addSubcommandGroup'>;
+
   abstract run(
-    _message: Message,
-    _args: string[],
+    _interaction: CommandInteraction,
     _userData?: DocumentType<User>,
     _globalData?: DocumentType<Global>,
     _guildData?: DocumentType<Guild>
-  ): Promise<Message | void>;
+  ): Promise<void | Message>;
 }

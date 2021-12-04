@@ -1,19 +1,22 @@
 import UtilityCommands from ".";
-import { Message, MessageAttachment } from "discord.js";
+import { CommandInteraction, MessageAttachment } from "discord.js";
 import dotenv from "dotenv";
 import path from "path";
 import fs from "fs";
+import { SlashCommandBuilder } from "@discordjs/builders";
 
 dotenv.config({ path: path.join(__dirname, "..", "..", "..") });
 
 export default class TranscriptCommand extends UtilityCommands {
-  cmdName = "transcript";
-  description = "Create a transcript.";
+  slashCommand = new SlashCommandBuilder()
+    .setName("transcript")
+    .setDescription("Create a transcrit file of the message in a channel.");
+
   permission = "ACCESS";
   aliases = ["trans"];
 
-  async run(message: Message) {
-    const msg = await message.channel.messages.fetch({ limit: 100 });
+  async run(interaction: CommandInteraction) {
+    const msg = await interaction.channel.messages.fetch({ limit: 100 });
     const text = Array.from(msg.values())
       .reverse()
       .map((value) => {
@@ -24,9 +27,9 @@ export default class TranscriptCommand extends UtilityCommands {
       .join("\n\n");
 
     if (!fs.existsSync("./transcripts/")) fs.mkdirSync("./transcripts");
-    fs.writeFileSync(`./transcripts/${message.channel.id}.txt`, text);
-    await message.channel.send({
-      attachments: [new MessageAttachment(`./transcripts/${message.channel.id}.txt`)]
+    fs.writeFileSync(`./transcripts/${interaction.channel.id}.txt`, text);
+    await interaction.reply({
+      attachments: [new MessageAttachment(`./transcripts/${interaction.channel.id}.txt`)]
     });
   }
 }
