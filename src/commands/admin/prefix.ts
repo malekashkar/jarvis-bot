@@ -13,7 +13,6 @@ export default class PrefixCommand extends AdminCommands {
     .addStringOption(sub =>
       sub.setName("prefix").setDescription("The new prefix you want to set.").setRequired(true));
 
-  aliases = ["status"];
   permission = "OWNER";
 
   async run(
@@ -32,7 +31,7 @@ export default class PrefixCommand extends AdminCommands {
     globalData.prefix = prefix;
     await globalData.save();
 
-    await interaction.reply({
+    return interaction.reply({
       embeds: [
         embeds.normal(
           `Prefix Changed`,

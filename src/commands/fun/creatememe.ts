@@ -90,8 +90,7 @@ export default class CreateMemeCommand extends FunCommands {
     ctx.strokeText(text.first().content.toUpperCase(), x, y);
     ctx.fillText(text.first().content.toUpperCase(), x, y);
 
-    // Send picture buffer
-    await interaction.reply({
+    return interaction.reply({
       attachments: [new MessageAttachment(canvas.toBuffer(), "meme.png")]
     });
   }

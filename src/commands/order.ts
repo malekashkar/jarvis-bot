@@ -35,7 +35,7 @@ export default class OrderCommand extends Command {
       userId: interaction.user.id,
     });
     if (orderData)
-      return await interaction.reply({
+      return interaction.reply({
         embeds: [embeds.error(`You already have an order open!`)]
       });
 
@@ -118,7 +118,7 @@ export default class OrderCommand extends Command {
         );
       } catch (err) {
         console.log(err);
-        interaction.reply({
+        return interaction.reply({
           embeds: [
             embeds.error(
               `There was an error creating your order, please contact administration!`

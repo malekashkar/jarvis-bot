@@ -11,8 +11,7 @@ export default class DeauthCommand extends AuthCommands {
     .setName("deauth")
     .setDescription("Remove someone's permission from using the discord bot.")
     
-  aliases = ["unauthorize", "deauthorize", "unath"];
-  permission = "OWNER";
+    permission = "OWNER";
 
   async run(interaction: CommandInteraction, userData: DocumentType<User>) {
     const users = await getTaggedUsers(
@@ -34,7 +33,7 @@ export default class DeauthCommand extends AuthCommands {
     userData.usedCode = null;
     await userData.save();
 
-    interaction.reply({
+    return interaction.reply({
       embeds: [
         embeds.normal(
           `User De-authed`,

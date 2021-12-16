@@ -8,7 +8,7 @@ import ms from "ms";
 import embeds from "../util/embed";
 
 export default class Advertisement extends Event {
-  eventName = "message";
+  eventName = "messageCreate";
   groupName: Groups = "friday";
 
   async handle(message: Message) {

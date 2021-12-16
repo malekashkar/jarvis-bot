@@ -16,10 +16,10 @@ export default class embeds {
   }
 
   static normal(title: string, text: string) {
-    return new MessageEmbed()
-      .setTitle(title)
-      .setDescription(text)
-      .setColor(settings.color);
+    const embed = new MessageEmbed().setColor(settings.color);
+    if(title) embed.setTitle(title);
+    if(text) embed.setDescription(text);
+    return embed;
   }
 
   static question(text: string) {
@@ -30,12 +30,12 @@ export default class embeds {
       .setColor(settings.color);
   }
 
-  static lockdown(type: "SERVER" | "HERE") {
+  static lockdown(type: "GUILD" | "HERE") {
     return new MessageEmbed()
       .setTitle(`Operation Complete`)
       .setDescription(
-        type === "SERVER"
-          ? `The server has been locked down.`
+        type === "GUILD"
+          ? `The guild has been locked down.`
           : `The channel has been locked down.`
       )
       .setColor(settings.color);

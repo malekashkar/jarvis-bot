@@ -12,7 +12,6 @@ export default class DeleteCommand extends ReminderCommands {
     .addNumberOption(opt =>
       opt.setName("reminder id").setDescription("The ID of your reminder.").setRequired(true))
 
-  aliases = ["remove"];
   permission = "ACCESS";
 
   async run(interaction: CommandInteraction, userData: DocumentType<User>,) {
@@ -26,7 +25,7 @@ export default class DeleteCommand extends ReminderCommands {
     userData.reminders = userData.reminders.filter((x) => x.id !== id);
     await userData.save();
 
-    await interaction.reply({
+    return interaction.reply({
       embeds: [embeds.normal(`Reminder Deleted`, `Reminder \`${id}\` has been deleted.`)]
     });
   }

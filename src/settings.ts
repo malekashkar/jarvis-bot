@@ -10,4 +10,5 @@ export default {
   ],
   friday_id: "718125733620220026",
   vision_id: "766853119039766538",
+  testingGuildId: "820651925368340511"
 };

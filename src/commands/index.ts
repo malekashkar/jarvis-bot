@@ -11,7 +11,6 @@ export type Groups = keyof ModulePrices;
 export default abstract class Command {
   permission: string;
   disabled = false;
-  aliases: string[] = [];
   client: Client;
     
   constructor(client: Client) {

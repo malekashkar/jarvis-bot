@@ -1,6 +1,6 @@
 import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import { Message, MessageEmbed, Collection, TextChannel, CommandInteraction } from "discord.js";
+import { MessageEmbed, Collection, CommandInteraction } from "discord.js";
 import User from "../../models/user";
 import { emojis, permissionCheck } from "../../util";
 import Global from "../../models/global";

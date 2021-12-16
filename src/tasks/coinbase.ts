@@ -5,7 +5,6 @@ import Order, { OrderModel } from "../models/order";
 import embeds from "../util/embed";
 import coinbase from "coinbase-commerce-node";
 
-
 export default class CoinbaseTask extends Task {
     taskName = "coinbase";
     groupName: Groups = "default";

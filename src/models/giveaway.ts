@@ -30,7 +30,7 @@ export class Requirements {
   multipliers?: RoleMultiplier[];
 
   @prop({ type: String, default: [] })
-  serverRequirements?: string[];
+  guildRequirements?: string[];
 }
 
 export class Giveaway {

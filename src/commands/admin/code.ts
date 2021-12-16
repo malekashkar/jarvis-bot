@@ -1,11 +1,11 @@
 import AdminCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import { CommandInteraction, MessageReaction, User } from "discord.js";
+import { CommandInteraction, Message, MessageReaction, User } from "discord.js";
 import Global, { CodeInfo } from "../../models/global";
 import DbUser from "../../models/user";
 import embeds from "../../util/embed";
 import _ from "lodash";
-import { emojis } from "../../util";
+import { emojis, toTitleCase } from "../../util";
 import { Groups } from "..";
 import { SlashCommandBuilder } from "@discordjs/builders";
 
@@ -18,7 +18,6 @@ export default class CodeCommand extends AdminCommands {
     .addSubcommand(sub =>
       sub.setName("create").setDescription("Create a new code for someone to redeem."))
 
-  aliases = ["gen"];
   permission = "owner";
 
   async run(
@@ -28,20 +27,26 @@ export default class CodeCommand extends AdminCommands {
   ) {
     const subCommand = interaction.options.getSubcommand(true);
     if (subCommand == "list") {
-      return interaction.reply({
-        embeds: [
-          embeds.normal(
-            `Available Codes`,
-            globalData.codes
-              .map((x, i) => `${i + 1}. **${x.code}** ~ (${x.modules.join(", ")})`)
-              .join("\n")
-          )
-        ]
-      });
+      if(globalData.codes.length) {
+        return interaction.reply({
+          embeds: [
+            embeds.normal(
+              `Available Codes`,
+              globalData.codes
+                .map((x, i) => `${i + 1}. **${x.code}** ~ (${x.modules.join(", ")})`)
+                .join("\n")
+            )
+          ]
+        });
+      } else {
+        return interaction.reply({
+          embeds: [embeds.error("Run the \`/code create\` command in order to create your first authentication code!")]
+        })
+      }
     } else {
       const modules: string[] = _.sortedUniq(
         this.client.commands
-          .map((x) => x.groupName)
+          .map((x) => toTitleCase(x.groupName))
           .filter((x) => !x.toLowerCase().includes("admin"))
       );
       const moduleEmojis = emojis.slice(0, modules.length);
@@ -49,53 +54,56 @@ export default class CodeCommand extends AdminCommands {
         .map((x, i) => `${emojis[i]} ${x}`)
         .join("\n");
   
-      const modulesQuestion = await interaction.channel.send({
+      const modulesQuestion = await interaction.reply({
         embeds: [
           embeds.question(
             `Which modules would you like to provide?\n\n${modulesDescription}`
           )
-        ]
+        ],
+        fetchReply: true
       });
-      for (const emoji of moduleEmojis.concat("✅")) {
-        await modulesQuestion.react(emoji);
-      }
-  
-      const filter = (reaction: MessageReaction, user: User) => user.id == interaction.user.id && reaction.emoji.name == "✅";
-      const collector = await modulesQuestion.awaitReactions(
-        { filter, time: 10 * 60 * 1000, errors: ["time"] }
-      );
-  
-      if (modulesQuestion.deletable) await modulesQuestion.delete();
-      if (collector?.first()) {
-        const selectedEmojis = Array.from(
-          modulesQuestion.reactions.cache
-            .filter(
-              (x) => x.emoji.name !== "✅" && x.users.cache.has(interaction.user.id)
-            )
-            .values()
-          );
-        const selectedModules = selectedEmojis.map(
-          (x) => modules[moduleEmojis.indexOf(x.emoji.toString())]
-        ) as Groups[];
-  
-        const code =
-          Math.random().toString(36).substring(2, 15) +
-          Math.random().toString(36).substring(2, 15);
-  
-        await interaction.reply({
-          embeds: [
-            embeds.normal(
-              `Code Generated`,
-              `The code **${code}** accompanied by the modules ${selectedModules.join(
-                ", "
-              )} is now available for use!`
-            )
-          ]
+
+      if(modulesQuestion instanceof Message) {
+        for (const emoji of moduleEmojis.concat("✅")) {
+          await modulesQuestion.react(emoji);
+        }
+    
+        const collector = modulesQuestion.createReactionCollector({
+          filter: (r: MessageReaction, u: User) => u.id == interaction.user.id && r.emoji.name == "✅",
+          max: 1,
+          time: 10 * 60 * 1000,
         });
-        await interaction.reply(code);
-  
-        globalData.codes.push(new CodeInfo(code, selectedModules));
-        await globalData.save();
+        
+        collector.on("collect", async() => {          
+          const selectedModules = Array.from(
+            modulesQuestion.reactions.cache
+              .filter((x) => x.emoji.name !== "✅" && x.users.cache.has(interaction.user.id))
+              .values()
+            ).map((x) => modules[moduleEmojis.indexOf(x.emoji.toString())]) as Groups[];
+          if(selectedModules.length == 0) return interaction.editReply({
+            embeds: [embeds.error("Select modules you would like to add next time!")]
+          });
+    
+          const code =
+            Math.random().toString(36).substring(2, 15) +
+            Math.random().toString(36).substring(2, 15);
+    
+          await modulesQuestion.reactions.removeAll();
+          await interaction.editReply({
+            embeds: [
+              embeds.normal(
+                `Code Generated`,
+                `The code **${code}** accompanied by the modules ${selectedModules.join(
+                  ", "
+                )} is now available for use!`
+              )
+            ]
+          }); 
+          await interaction.channel.send(code);
+    
+          globalData.codes.push(new CodeInfo(code, selectedModules));
+          await globalData.save();
+        });
       }
     }
   }

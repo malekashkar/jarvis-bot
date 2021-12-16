@@ -11,7 +11,7 @@ export default class CatCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
-    await interaction.reply({
+    return interaction.reply({
       attachments: [
         new MessageAttachment(await imgurImage("cat"))
       ]

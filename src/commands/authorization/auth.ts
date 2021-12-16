@@ -12,9 +12,7 @@ export default class AuthCommand extends AuthCommands {
     .setDescription("Authorize yourself to get access to the bot.")
     .addStringOption(sub =>
       sub.setName("code").setDescription("Enter your authentication code.").setRequired(true));
-    
-  aliases = ["authenticate", "authorize"];
-
+  
   async run(
     interaction: CommandInteraction,
     userData: DocumentType<User>,

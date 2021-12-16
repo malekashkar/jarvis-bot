@@ -26,20 +26,19 @@ export default class ListCommand extends FridayCommands {
         ]
       });
 
-    const fields = guildData.roles.map((role) => {
-      return {
-        name: interaction.guild.roles.resolve(role.role).name,
-        value: `**Channels**: ${role.channels.map((c) => `<#${c}>\n`).join("")}
-      **Interval**: ${ms(role.cooldownTime)}
-      **Autorole**: ${role.autorole}`,
-        inline: true,
-      };
-    });
+    const listEmbed = embeds.empty().setTitle("Listed Roles");
+    for(const role of guildData.roles) {
+      listEmbed.addField(
+        interaction.guild.roles.resolve(role.role).name, 
+        `**Channels**: ${role.channels.map((c) => `<#${c}>\n`).join("")}
+        **Interval**: ${ms(role.cooldownTime)}
+        **Autorole**: ${role.autorole}`,
+        true
+      );
+    }
 
-    await interaction.reply({
-      embeds: [
-        embeds.empty().setTitle(`Listed Roles`).addFields(fields)
-      ]
+    return interaction.reply({
+      embeds: [listEmbed]
     });
   }
 }

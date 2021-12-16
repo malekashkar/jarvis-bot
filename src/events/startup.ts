@@ -11,6 +11,7 @@ export default class startEvent extends Event {
       (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
     this.client.user.setActivity(globalData.status, { type: "WATCHING" });
+    this.client.loadSlashCommands(this.client);
     Logger.info("BOT", "The bot has been turned on!");
   }
 }

@@ -11,6 +11,6 @@ export default class DogCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
-    await interaction.reply({ embeds: [new MessageAttachment(await imgurImage("dog"))] });
+    return interaction.reply({ embeds: [new MessageAttachment(await imgurImage("dog"))] });
   }
 }

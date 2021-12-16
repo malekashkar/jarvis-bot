@@ -44,12 +44,7 @@ export default class CommandHandler extends Event {
     const command = interaction.commandName;
     for (const commandObj of Array.from(this.client.commands.values())) {
       if (commandObj.disabled) continue;
-      if (
-        commandObj.slashCommand.name.toLowerCase() === command.toLowerCase() ||
-        commandObj.aliases
-          .map((x) => x.toLowerCase())
-          .includes(command.toLowerCase())
-      ) {
+      if (commandObj.slashCommand.name.toLowerCase() === command.toLowerCase()) {
         if (
           commandObj.permission &&
           !permissionCheck(

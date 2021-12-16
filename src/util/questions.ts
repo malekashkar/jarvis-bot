@@ -1,6 +1,6 @@
-import { CommandInteraction, Interaction, Message } from "discord.js";
+import { CommandInteraction, Message, Role, User } from "discord.js";
 import embeds from "./embed";
-import { emojis as emojiList } from "./index";
+import { emojis as emojiList, toTitleCase } from "./index";
 
 export async function confirmator(
   interaction: CommandInteraction,
@@ -8,105 +8,202 @@ export async function confirmator(
   userId?: string
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({
-    embeds: [embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)]
+
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(confirmationMessage + `\nClick the ✅ below to confirm.`)] 
   });
-  for (const emoji of ["✅", "❎"]) {
-    await questionMessage.react(emoji);
+  const questionMessage = await interaction.fetchReply();
+
+  if(questionMessage instanceof Message) {
+    for (const emoji of ["✅", "❎"]) {
+      await questionMessage.react(emoji);
+    }
+  
+    const reactionCollector = await questionMessage.awaitReactions({
+      filter: (r, u) =>
+        (u.id === reactionUserId && r.emoji.name === "✅") ||
+        (u.id === reactionUserId && r.emoji.name === "❎"),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+    
+    return reactionCollector?.first()?.emoji?.name === "✅";
   }
-
-  const reactionCollector = await questionMessage.awaitReactions({
-    filter: (r, u) =>
-      (u.id === reactionUserId && r.emoji.name === "✅") ||
-      (u.id === reactionUserId && r.emoji.name === "❎"),
-    max: 1,
-    time: 900000,
-    errors: ["time"]
-  });
-
-  if (questionMessage.deletable) await questionMessage.delete();
-
-  if (reactionCollector?.first()?.emoji?.name === "❎") return false;
-  return true;
 }
 
-export async function optionReactQuestion(
-  message: Message,
+export async function optionsQuestion(
+  interaction: CommandInteraction,
   question: string,
   options: string[],
   userId?: string
 ) {
   const emojis = emojiList.slice(0, options.length);
-  const reactionUserId = userId || message.author.id;
-  const questionOptions = options.map((x, i) => `${emojis[i]} ${x}`);
-  const questionMessage = await message.channel.send({
+  const reactionUserId = userId || interaction.user.id;
+  const questionOptions = options.map((x, i) => `${emojis[i]} ${toTitleCase(x)}`);
+
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
     embeds: [embeds.question(question + `\n\n${questionOptions.join("\n")}`)]
   });
-  for (const emoji of emojis) {
-    await questionMessage.react(emoji);
+  const questionMessage = await interaction.fetchReply();
+
+  if(questionMessage instanceof Message) {
+    for (const emoji of emojis) {
+      await questionMessage.react(emoji);
+    }
+  
+    const reactionCollector = await questionMessage.awaitReactions({
+      filter: (r, u) => u.id === reactionUserId && emojis.includes(r.emoji.name),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    return reactionCollector
+      ? options[emojis.indexOf(reactionCollector.first().emoji.name)]
+      : null; 
   }
-
-  const reactionCollector = await questionMessage.awaitReactions({
-    filter: (r, u) => u.id === reactionUserId && emojis.includes(r.emoji.name),
-    max: 1,
-    time: 900000,
-    errors: ["time"]
-  });
-
-  if (questionMessage.deletable) await questionMessage.delete();
-  return reactionCollector
-    ? options[emojis.indexOf(reactionCollector.first().emoji.name)]
-    : null;
 }
 
-export async function messageQuestion(
-  interaction: Interaction,
+export async function optionReactionQuestion(
+  interaction: CommandInteraction,
+  question: string,
+  reactions: string[],
+  userId?: string
+) {
+  const reactionUserId = userId || interaction.user.id;
+
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
+  });
+  const questionMessage = await interaction.fetchReply();
+
+  if(questionMessage instanceof Message) {
+    for (const emoji of reactions) {
+      await questionMessage.react(emoji);
+    }
+  
+    const reactionCollector = await questionMessage.awaitReactions({
+      filter: (r, u) => u.id === reactionUserId && reactions.includes(r.emoji.name),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    return reactionCollector?.first()?.emoji?.name;
+  }
+}
+
+export async function stringQuestion(
+  interaction: CommandInteraction,
   question: string,
   userId?: string,
   options?: string[]
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await interaction.channel.awaitMessages({
-    filter: (x) =>
-      x.author.id === reactionUserId &&
-      (options && options.length ? options.includes(x.content) : true),
-    max: 1,
-    time: 900000,
-    errors: ["time"]
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
   });
+  const questionMessage = await interaction.fetchReply();
 
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector?.first()?.deletable)
-    await messageCollector.first().delete();
-
-  return messageCollector?.first();
+  if(questionMessage instanceof Message) {
+    const messageCollector = await interaction.channel.awaitMessages({
+      filter: (x) =>
+        x.author.id === reactionUserId &&
+        (options && options.length ? options.includes(x.content) : true),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    if (messageCollector?.first()?.deletable)
+      await messageCollector.first().delete();
+  
+    return messageCollector?.first().content;
+  }
 }
 
-export async function messageQuestionOrCancel(
-  interaction: Interaction,
+export async function numberQuestion(
+  interaction: CommandInteraction,
   question: string,
   userId?: string,
   options?: string[]
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await interaction.channel.awaitMessages({
-    filter: (x) =>
-      x.author.id === reactionUserId &&
-      (options && options.length ? options.includes(x.content) : true),
-    max: 1,
-    time: 900000,
-    errors: ["time"]
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
   });
+  const questionMessage = await interaction.fetchReply();
 
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector?.first()?.deletable)
-    await messageCollector.first().delete();
+  if(questionMessage instanceof Message) {
+    const messageCollector = await interaction.channel.awaitMessages({
+      filter: (x) =>
+        x.author.id === reactionUserId &&
+        (options && options.length ? options.includes(x.content) : true) &&
+        /[0-9]/gm.test(x.content),
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    if (messageCollector?.first()?.deletable)
+      await messageCollector.first().delete();
+  
+    return parseInt(messageCollector.first().content.match(/[0-9]/gm).join("")) > 100 
+      ? 100
+      : parseInt(messageCollector.first().content.match(/[0-9]/gm).join(""));
+  }
+}
 
-  return messageCollector?.first();
+export async function stringQuestionOrCancel(
+  interaction: CommandInteraction,
+  question: string,
+  userId?: string,
+  options?: string[]
+) {
+  const reactionUserId = userId || interaction.user.id;
+
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
+  });
+  const questionMessage = await interaction.fetchReply();
+  
+  if(questionMessage instanceof Message) {
+    await questionMessage.react("🚫");
+    
+    const messageCollector = interaction.channel.createMessageCollector({
+      filter: (x) =>
+        x.author.id === reactionUserId && (options && options.length ? options.includes(x.content) : true),
+      max: 1,
+      time: 900000, 
+    });
+
+    const reactionCollector = questionMessage.createReactionCollector({
+      filter: (r, u) => r.emoji.name === "🚫" && u.id === interaction.user.id,
+      max: 1,
+      time: 900000,
+    });
+
+    const promise: Promise<null | string> = new Promise((res, rej) => {
+      reactionCollector.on("collect", async(r, u) => {
+        messageCollector.stop();
+        await questionMessage.reactions.removeAll();
+        res(null);
+      });
+      
+      messageCollector.on("collect", async(m) => {
+        reactionCollector.stop();
+        await questionMessage.reactions.removeAll();
+        if(m.deletable) await m.delete();
+        res(m.content);
+      });
+    });
+
+    await questionMessage.reactions.removeAll();
+    return promise;
+  }
 }
 
 export async function getTaggedUsers(
@@ -115,98 +212,175 @@ export async function getTaggedUsers(
   userId?: string
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await interaction.channel.awaitMessages({
-    filter: (x) =>
-      x.author.id === reactionUserId &&
-      x.mentions.users.size > 0,
-    max: 1,
-    time: 900000,
-    errors: ["time"]
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
   });
+  const questionMessage = await interaction.fetchReply();
 
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector.first().deletable)
-    await messageCollector.first().delete();
+  if(questionMessage instanceof Message) {
+    const messageCollector = await interaction.channel.awaitMessages({
+      filter: (x) =>
+        x.author.id === reactionUserId &&
+        x.mentions.users.size > 0,
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    if (messageCollector.first().deletable)
+      await messageCollector.first().delete();
+  
+    return messageCollector.first().mentions.users;
+  }
+}
 
-  return messageCollector.first().mentions.users;
+export async function getTaggedUsersOrCancel(
+  interaction: CommandInteraction,
+  question: string,
+  userId?: string
+) {  
+  const reactionUserId = userId || interaction.user.id;
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
+  });
+  const questionMessage = await interaction.fetchReply();
+
+  if(questionMessage instanceof Message) {
+    await questionMessage.react("🚫");
+    
+    const messageCollector = interaction.channel.createMessageCollector({
+      filter: (x) =>
+        x.author.id === reactionUserId && x.mentions.users.size > 0,
+      max: 1,
+      time: 900000, 
+    });
+
+    const reactionCollector = questionMessage.createReactionCollector({
+      filter: (r, u) => r.emoji.name === "🚫" && u.id === interaction.user.id,
+      max: 1,
+      time: 900000,
+    });
+
+    const promise: Promise<null | User[]> = new Promise((res, rej) => {
+      reactionCollector.on("collect", async(r, u) => {
+        messageCollector.stop();
+        await questionMessage.reactions.removeAll();
+        res(null);
+      });
+      
+      messageCollector.on("collect", async(m) => {
+        reactionCollector.stop();
+        await questionMessage.reactions.removeAll();
+        if(m.deletable) await m.delete();
+        res(Array.from(m.mentions.users.values()));
+      });
+    });
+
+    return promise;
+  }
 }
 
 export async function getTaggedRoles(
-  interaction: Interaction,
+  interaction: CommandInteraction,
   question: string,
   userId?: string
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await interaction.channel.awaitMessages({
-    filter: (x) =>
-      x.author.id === reactionUserId &&
-      x.mentions.roles.size > 0,
-    max: 1,
-    time: 900000,
-    errors: ["time"]
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
   });
+  const questionMessage = await interaction.fetchReply();
 
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector.first().deletable)
-    await messageCollector.first().delete();
-
-  return messageCollector.first().mentions.roles;
+  if(questionMessage instanceof Message) {
+    const messageCollector = await interaction.channel.awaitMessages({
+      filter: (x) =>
+        x.author.id === reactionUserId &&
+        x.mentions.roles.size > 0,
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    if (messageCollector.first().deletable)
+      await messageCollector.first().delete();
+  
+    return messageCollector.first().mentions.roles;
+  }
 }
 
 export async function getTaggedRolesOrCancel(
-  interaction: Interaction,
+  interaction: CommandInteraction,
   question: string,
   userId?: string
 ) {
-  const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({
-    embeds: [embeds.question(question)]
-  });
+    const reactionUserId = userId || interaction.user.id;
 
-  await questionMessage.react("🚫");
+    await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+      embeds: [embeds.question(question)]
+    });
+    const questionMessage = await interaction.fetchReply();
+  
+    if(questionMessage instanceof Message) {
+      await questionMessage.react("🚫");
+      
+      const messageCollector = interaction.channel.createMessageCollector({
+        filter: (x) =>
+          x.author.id === reactionUserId && x.mentions.roles.size > 0,
+        max: 1,
+        time: 900000, 
+      });
 
-  const reactionCollector = await questionMessage.awaitReactions()
+      const reactionCollector = questionMessage.createReactionCollector({
+        filter: (r, u) => r.emoji.name === "🚫" && u.id === interaction.user.id,
+        max: 1,
+        time: 900000,
+      });
 
-  const messageCollector = await interaction.channel.awaitMessages({
-    filter: (x) =>
-      x.author.id === reactionUserId &&
-      x.mentions.roles.size > 0,
-    max: 1,
-    time: 900000, 
-    errors: ["time"]
-  });
+      const promise: Promise<null | Role[]> = new Promise((res, rej) => {
+        reactionCollector.on("collect", async(r, u) => {
+          messageCollector.stop();
+          await questionMessage.reactions.removeAll();
+          res(null);
+        });
+        
+        messageCollector.on("collect", async(m) => {
+          reactionCollector.stop();
+          await questionMessage.reactions.removeAll();
+          res(Array.from(m.mentions.roles.values()));
+      });
+    });
 
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector.first().deletable)
-    await messageCollector.first().delete();
-
-  return messageCollector.first().mentions.roles;
+    return promise;
+  }
 }
 
 export async function getTaggedChannels(
-  interaction: Interaction,
+  interaction: CommandInteraction,
   question: string,
   userId?: string
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
 
-  const messageCollector = await interaction.channel.awaitMessages({
-    filter: (x) =>
-      x.author.id === reactionUserId &&
-      x.mentions.channels.size > 0,
-    max: 1,
-    time: 900000,
-    errors: ["time"]
+  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
+    embeds: [embeds.question(question)]
   });
+  const questionMessage = await interaction.fetchReply();
 
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector.first().deletable)
-    await messageCollector.first().delete();
-
-  return messageCollector.first().mentions.channels;
+  if(questionMessage instanceof Message) {
+    const messageCollector = await interaction.channel.awaitMessages({
+      filter: (x) =>
+        x.author.id === reactionUserId &&
+        x.mentions.channels.size > 0,
+      max: 1,
+      time: 900000,
+      errors: ["time"]
+    });
+  
+    if (messageCollector.first().deletable)
+      await messageCollector.first().delete();
+  
+    return messageCollector.first().mentions.channels;
+  }
 }

@@ -2,6 +2,7 @@ import UtilityCommands from ".";
 import { CommandInteraction, TextChannel } from "discord.js";
 import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { optionsQuestion, stringQuestion } from "../../util/questions";
 
 export default class EmbedCommand extends UtilityCommands {
   slashCommand = new SlashCommandBuilder()
@@ -11,82 +12,39 @@ export default class EmbedCommand extends UtilityCommands {
   permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
-    /*
-    const option =
-      args[0]?.toLowerCase() === "server" ||
-      args[0]?.toLowerCase() === "servers"
-        ? "server"
-        : args[0]?.toLowerCase() === "here"
-        ? "here"  
-        : null;
-    if (!option)
-      return interaction.reply({
-        embeds: [
-          embeds.error(
-            `Please provide **server/here** as the first argument of your command!`
-          )
-        ]
-      });
-    args.shift();
+    const option = await optionsQuestion(
+      interaction,
+      "Where would you like to send the message?",
+      ["here", "guild"]
+    );
 
-    const serverNumber = !isNaN(parseInt(args[0])) ? parseInt(args[0]) : null;
-    if (option === "server" && !serverNumber) {
-      return interaction.reply({
-        embeds: [
-          embeds.error(
-            `Please provide the server number you would like the message to be sent in!`
-          )
-        ]
-      });
-    } else if (option === "server" && serverNumber) {
-      args.shift();
-    }
+    const content = await stringQuestion(interaction, "What message would you like to display?");
 
-    const channelName = args[0];
-    if (option === "server" && !channelName) {
-      return interaction.reply({
-        embeds: [
-          embeds.error(
-            `Please provide the channel's name you would like the message to be sent in!`
-          )
-        ]
-      });
-    } else if (option === "server" && channelName) {
-      args.shift();
-    }
-
-    const text = args.join(" ");
-    if (!text)
-      return interaction.reply({
-        embeds: [embeds.error(`Please provide the text for the message!`)]
-      });
-
-    const title = text.includes("^") ? text.split("^")[0] : false;
-    const description = text.includes("^") ? text.split("^")[1] : text;
-    const embed = embeds.empty();
-    if (title) embed.setTitle(title);
-    if (description) embed.setDescription(description);
-
-    if (option === "here") {
-      interaction.reply({ embeds: [embed] });
-    } else {
-      const server = this.client.guilds.cache.get(
-        Array.from(this.client.guilds.cache.values())[serverNumber - 1].id
-      );
-      if (!server)
-        return interaction.reply({
-          embeds: [embeds.error(`There is no server with the provided number!`)]
-        });
-      const channel = Array.from(server.channels.cache.values()).find(
-        (x) => x.type === "GUILD_TEXT" && x.name === channelName
-      ) as TextChannel;
-      if (!channel || !channel.permissionsFor(server.me).has("SEND_MESSAGES"))
-        return interaction.reply({
-          embeds: [embeds.error(`The channel you provided could not be found!`)]
+    if(content) {
+      if (option === "here") {
+        return interaction.reply({ embeds: [embeds.normal(null, content)] });
+      } else {
+        const guildId = await stringQuestion(interaction, "What is the ID of the guild?");
+        const guild = await this.client.guilds.fetch(guildId);
+        if(!guild) return interaction.reply({
+          embeds: [embeds.error("The guild ID you provided is invalid!")]
         });
 
-      (channel as TextChannel).send({ embeds: [embed] });
+        const channelId = await stringQuestion(interaction, "What is the ID of the channel?");
+        const channel = await guild.channels.fetch(channelId);
+        if(!channel) return interaction.reply({
+          embeds: [embeds.error("The channel ID you provided is invalid!")]
+        });
+
+        if(channel instanceof TextChannel) {
+          if (channel.permissionsFor(guild.me).has("SEND_MESSAGES"))
+          return interaction.reply({
+            embeds: [embeds.error("I do not have permission to send messages in that channel!")]
+          });
+  
+          channel.send({ embeds: [embeds.normal(null, content)] });
+        }
+      }
     }
-    */
   }
 }

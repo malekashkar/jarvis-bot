@@ -11,6 +11,6 @@ export default class MemeCommand extends FunCommands {
   permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
-    await interaction.reply({ embeds: [new MessageAttachment(await imgurImage("meme"))] });
+    return interaction.reply({ embeds: [new MessageAttachment(await imgurImage("meme"))] });
   }
 }

@@ -40,8 +40,7 @@ export default class PayCommand extends AdminCommands {
       });
       try {
         await charge.save();
-
-        interaction.reply({
+        return interaction.reply({
           embeds: [
             embeds.normal(
               `Invoice Created`,
@@ -51,7 +50,7 @@ export default class PayCommand extends AdminCommands {
         });
       } catch (err) {
         console.log(err);
-        interaction.reply({
+        return interaction.reply({
           embeds: [
             embeds.error(
               `There was an error creating your invoice, please contact administration!`

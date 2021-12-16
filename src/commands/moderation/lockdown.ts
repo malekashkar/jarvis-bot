@@ -9,7 +9,7 @@ export default class LockdownCommand extends ModCommands {
     .setDescription("Lockdown multiple channels or the entire guild.")
     .addStringOption(sub =>
       sub.setName("lockdown type").setDescription("The type of lockdown you would like to initiate.").setRequired(true)
-        .addChoice("Server", "server")
+        .addChoice("Guild", "guild")
         .addChoice("Channel", "channel"));
 
   permission = "ACCESS";
@@ -18,13 +18,13 @@ export default class LockdownCommand extends ModCommands {
     if (!interaction.guild) return;
 
     const option = interaction.options.getString("lockdown type");
-    if (option === "server") {
+    if (option === "guild") {
       for (const channel of interaction.guild.channels.cache) {
         if (channel instanceof TextChannel || channel instanceof VoiceChannel)
           await lockChannel(channel);
       }
       return interaction.reply({
-        embeds: [embeds.normal(`Operation Complete`, `The server has been locked down!`)]
+        embeds: [embeds.normal(`Operation Complete`, `The guild has been locked down!`)]
       });
     } else {
       await lockChannel(interaction.channel as TextChannel);

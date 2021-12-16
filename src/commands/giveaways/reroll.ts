@@ -60,7 +60,7 @@ export default class RerollCommand extends GiveawayCommands {
           }
 
           if (giveawayWinners.length) {
-            await interaction.channel.send({
+            return interaction.reply({
               content: `${giveawayWinners.map((x) => x.toString()).join(", ")}`,
               embeds: [
                 embeds.normal(
@@ -76,7 +76,7 @@ export default class RerollCommand extends GiveawayCommands {
             );
           }
         } else {
-          await interaction.channel.send({
+          return interaction.reply({
             embeds: [
               embeds.normal(
                 `Giveaway Ended`,
@@ -86,7 +86,7 @@ export default class RerollCommand extends GiveawayCommands {
           });
         }
       } else {
-        return interaction.channel.send({
+        return interaction.reply({
           embeds: [embeds.error(`The giveaway message could not be located!`)]
         });
       }

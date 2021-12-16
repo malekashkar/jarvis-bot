@@ -7,13 +7,12 @@ export default class CoinflipCommand extends FunCommands {
     .setName("coinflip")
     .setDescription("Flip a coin and receive a random side.");
     
-  aliases = ["flip"];
   permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
     const random = ["heads", "tails"][Math.floor(Math.random() * 2)];
 
-    await interaction.reply({
+    return interaction.reply({
       attachments: [
         new MessageAttachment(
           random === "heads"

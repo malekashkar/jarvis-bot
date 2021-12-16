@@ -6,7 +6,7 @@ import { Guild, Roles } from "../../models/guild";
 import User from "../../models/user";
 import {
   getTaggedRoles,
-  messageQuestion,
+  stringQuestion,
   confirmator,
 } from "../../util/questions";
 import ms from "ms";
@@ -16,7 +16,7 @@ import { SlashCommandBuilder } from "@discordjs/builders";
 export default class SetupCommand extends FridayCommands {
   slashCommand = new SlashCommandBuilder()
     .setName("setup")
-    .setDescription("Setup a role with Friday on your discord server.");
+    .setDescription("Setup a role with Friday on your guild.");
 
   async run(
     interaction: CommandInteraction,
@@ -36,7 +36,7 @@ export default class SetupCommand extends FridayCommands {
     );
     if (!channels) return;
 
-    const cooldownQuestion = await messageQuestion(
+    const cooldownQuestion = await stringQuestion(
       interaction,
       `How long should the interval be between every ad this role can post?`
     );
@@ -49,7 +49,7 @@ export default class SetupCommand extends FridayCommands {
 
     const role = roles.first();
     const channelIds = channels.map((channel) => channel.id);
-    const cooldownTime = ms(cooldownQuestion.content);
+    const cooldownTime = ms(cooldownQuestion);
     guildData.roles.push(
       new Roles(role.id, channelIds, autorole, cooldownTime)
     );
@@ -63,6 +63,10 @@ export default class SetupCommand extends FridayCommands {
         }]
       );
     });
+
+    interaction.editReply({
+      embeds: [embeds.normal("Setup Complete", "Friday has successfully setup this guild!")]
+    });
   }
 }
 
@@ -72,15 +76,15 @@ export async function getNumberedChannels(
   userId?: string
 ) {
   const reactionUserId = userId || interaction.user.id;
-  const questionMessage = await interaction.channel.send({ embeds: [embeds.question(question)] });
-
-  const messageCollector = await interaction.channel.awaitMessages(
-    { filter: (m: Message) => m.author.id == reactionUserId, max: 1, time: 900000, errors: ["time"] }
-  );
-
-  if (questionMessage.deletable) await questionMessage.delete();
-  if (messageCollector.first().deletable)
-    await messageCollector.first().delete();
-
-  return messageCollector.first().mentions.channels;
+  const questionMessage = await interaction.reply({ embeds: [embeds.question(question)], fetchReply: true });
+  if(questionMessage instanceof Message) {
+    const messageCollector = await interaction.channel.awaitMessages(
+      { filter: (m: Message) => m.author.id == reactionUserId, max: 1, time: 900000, errors: ["time"] }
+    );
+  
+    if (messageCollector.first().deletable)
+      await messageCollector.first().delete();
+  
+    return messageCollector.first().mentions.channels;
+  }
 }

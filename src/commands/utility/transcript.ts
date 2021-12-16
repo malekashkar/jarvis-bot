@@ -13,7 +13,6 @@ export default class TranscriptCommand extends UtilityCommands {
     .setDescription("Create a transcrit file of the message in a channel.");
 
   permission = "ACCESS";
-  aliases = ["trans"];
 
   async run(interaction: CommandInteraction) {
     const msg = await interaction.channel.messages.fetch({ limit: 100 });
@@ -28,7 +27,7 @@ export default class TranscriptCommand extends UtilityCommands {
 
     if (!fs.existsSync("./transcripts/")) fs.mkdirSync("./transcripts");
     fs.writeFileSync(`./transcripts/${interaction.channel.id}.txt`, text);
-    await interaction.reply({
+    return interaction.reply({
       attachments: [new MessageAttachment(`./transcripts/${interaction.channel.id}.txt`)]
     });
   }

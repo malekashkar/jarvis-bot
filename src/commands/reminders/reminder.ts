@@ -22,11 +22,11 @@ export default class ReminderCommand extends ReminderCommands {
           embeds: [embeds.error(`No reminder was found with the specified ID.`)]
         });
   
-      interaction.reply({
+      return interaction.reply({
         embeds: [
           embeds.normal(
             `Reminder Found`,
-            `**Server:** ${
+            `**Guild:** ${
               this.client.guilds.resolve(reminder.guildId).name
             }\n**Name:** ${reminder.name}\n**Message:** ${reminder.message}`
           )
@@ -34,15 +34,14 @@ export default class ReminderCommand extends ReminderCommands {
       });
     } else {
       const reminders = userData.reminders
-        .map(
-          (x) =>
-            `**Server:** ${
+        .map((x) =>
+            `**Guild:** ${
               this.client.guilds.resolve(x.guildId).name
             }\n**Name:** ${x.name}\n**ID:** ${x.id}`
         )
         .join("\n\n");
   
-      await interaction.reply({
+      return interaction.reply({
         embeds: [
           embeds.normal(
             `List of reminders`,

@@ -12,7 +12,7 @@ export default class PermsCommand extends ModCommands {
         .addChoice("Set", "set")
         .addChoice("Remove", "remove"))
     .addStringOption(sub =>
-      sub.setName("server id").setDescription("The server ID").setRequired(true))
+      sub.setName("guild id").setDescription("The guild ID").setRequired(true))
     .addStringOption(sub =>
       sub.setName("user id").setDescription("The ID of the user").setRequired(true))
     .addStringOption(sub =>
@@ -22,28 +22,28 @@ export default class PermsCommand extends ModCommands {
 
   async run(interaction: CommandInteraction) {
     const type = interaction.options.getString("perm type");
-    const serverId = interaction.options.getString("server id");
+    const guildId = interaction.options.getString("guild id");
     const userId = interaction.options.getString("user id");
     const roleName = interaction.options.getString("role name");
 
-    const server = await this.client.guilds.fetch(serverId);
-    if(!server) return interaction.reply({
-      embeds: [embeds.error("I could not find the server you are looking for with the ID!")]
+    const guild = await this.client.guilds.fetch(guildId);
+    if(!guild) return interaction.reply({
+      embeds: [embeds.error("I could not find the guild you are looking for with the ID!")]
     });
 
-    const member = await server.members.fetch(userId);
+    const member = await guild.members.fetch(userId);
     if(!member) return interaction.reply({
-      embeds: [embeds.error("Could not find specified member with the ID in the server!")]
+      embeds: [embeds.error("Could not find specified member with the ID in the guild!")]
     });
 
-    const role = server.roles.cache.find((x) => x.name === roleName);
+    const role = guild.roles.cache.find((x) => x.name === roleName);
     if(!role) return interaction.reply({
       embeds: [embeds.error(`There doesn't seem to be a role with the name \`${roleName}\``)]
     });
 
-    if (!server.me.permissions.has(Permissions.FLAGS.MANAGE_ROLES))
+    if (!guild.me.permissions.has(Permissions.FLAGS.MANAGE_ROLES))
       return interaction.reply({
-        embeds: [embeds.error(`I don't have permissions to manage roles in that server!`)]
+        embeds: [embeds.error(`I don't have permissions to manage roles in that guild!`)]
       });
 
     if (type === "set") await member.roles.add(role);

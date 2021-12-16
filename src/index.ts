@@ -1,4 +1,3 @@
-import { Client as CoinbaseClient } from "coinbase-commerce-node";
 import { Routes } from "discord-api-types/v9";
 import { REST } from "@discordjs/rest";
 import {
@@ -19,6 +18,7 @@ import Command from "./commands";
 import logger from "./util/logger";
 import { Location } from "./models/giveaway";
 import Task from "./tasks";
+import settings from "./settings";
 
 dotenv.config();
 
@@ -40,7 +40,7 @@ export default class Client extends BaseManager {
       ],
     });
 
-    CoinbaseClient.init(process.env.COINBASE_API);
+    // CoinbaseClient.init(process.env.COINBASE_API);
     this.discordRestApi.setToken(process.env.TOKEN);
     this.login(process.env.TOKEN);
 
@@ -48,7 +48,6 @@ export default class Client extends BaseManager {
     this.loadCommands();
     this.loadEvents();
     this.loadServer();
-    // this.loadSlashCommands();
   }
 
   loadServer() {
@@ -94,27 +93,29 @@ export default class Client extends BaseManager {
     }
   }
 
-  async loadSlashCommands() {
-    try {
-      let slashCommands = [];
-
-      for(const command of this.commands.values()) {
-        slashCommands.push(command.slashCommand);
-        for(const alias of command.aliases) {
-          const slashCommand = command.slashCommand;
-          slashCommand.setName(alias);
-          slashCommands.push(slashCommand);
-        }
+  async loadSlashCommands(client: this) {
+    if(process.env.MODE == "prod") {
+      try {
+        await client.discordRestApi.put(
+          Routes.applicationCommands(client.user.id),
+          { body: client.commands.map(x => x.slashCommand) },
+        );
+  
+        logger.info("SLASH_COMMANDS", "Slash commands have been loaded successfully!");
+      } catch (error) {
+        logger.error("SLASH_COMMANDS", error)
       }
-
-      await this.discordRestApi.put(
-        Routes.applicationCommands(this.user.id),
-        { body: slashCommands },
-      );
-
-      logger.info("SLASH_COMMANDS", "Slash commands have been loaded successfully!");
-    } catch (error) {
-      logger.error("SLASH_COMMANDS", error)
+    } else {
+      try {
+        await client.discordRestApi.put(
+          Routes.applicationGuildCommands(client.user.id, settings.testingGuildId),
+          { body: client.commands.map(x => x.slashCommand) },
+        );
+  
+        logger.info("SLASH_COMMANDS", "Slash commands have been loaded successfully!");
+      } catch (error) {
+        logger.error("SLASH_COMMANDS", error)
+      }
     }
   }
 
