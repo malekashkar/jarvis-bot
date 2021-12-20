@@ -41,6 +41,9 @@ export class ModulePrices {
 
   @prop({ default: 5 })
   giveaways: number;
+
+  @prop({ default: 5 })
+  invites: number;
 }
 
 export default class Global {

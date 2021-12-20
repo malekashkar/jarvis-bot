@@ -5,6 +5,7 @@ import {
   Client as BaseManager,
   ClientOptions,
   TextChannel,
+  Invite,
 } from "discord.js";
 
 import mongoose from "mongoose";
@@ -27,6 +28,8 @@ export default class Client extends BaseManager {
   server = express();
 
   commands: Collection<string, Command> = new Collection();
+
+  inviteCodes: Collection<string, Invite> = new Collection();
 
   constructor(options?: ClientOptions) {
     super({
