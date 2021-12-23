@@ -9,8 +9,6 @@ export default class EmbedCommand extends UtilityCommands {
     .setName("embed")
     .setDescription("Send an embed message anywhere");
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const option = await optionsQuestion(
       interaction,

@@ -17,8 +17,6 @@ export default class ModulePriceCommand extends AdminCommands {
     .addNumberOption(sub =>
       sub.setName("amount").setDescription("The new price of the module.").setRequired(true));
 
-  permission = "OWNER";
-
   async run(
     interaction: CommandInteraction,
     _userData: DocumentType<User>,

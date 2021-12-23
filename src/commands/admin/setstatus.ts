@@ -13,8 +13,6 @@ export default class SetstatusCommand extends AdminCommands {
     .addStringOption(sub => 
       sub.setName("status").setDescription("Enter the new status you would like to set.").setRequired(true));
     
-  permission = "OWNER";
-
   async run(
     interaction: CommandInteraction,
     _userData: DocumentType<User>,

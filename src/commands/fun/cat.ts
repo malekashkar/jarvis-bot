@@ -8,8 +8,6 @@ export default class CatCommand extends FunCommands {
     .setName("cat")
     .setDescription("Looks like you can use some cat pics.");
   
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     return interaction.reply({
       attachments: [

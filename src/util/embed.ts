@@ -1,5 +1,6 @@
 import { MessageEmbed, Role, HexColorString } from "discord.js";
 import moment from "moment";
+import ms from "ms";
 import { RoleMultiplier } from "../models/giveaway";
 import settings from "../settings";
 
@@ -53,7 +54,7 @@ export default class embeds {
     prize: string,
     cappedEntries: number,
     winners: number,
-    endsAt: Date,
+    timeLeft: number,
     messageRequirement: number = 0,
     roleRequirements: Role[] = [],
     roleMultipliers: RoleMultiplier[] = []
@@ -62,8 +63,8 @@ export default class embeds {
       ? `📈 **Capped Entries** ${cappedEntries}\n`
       : ``;
     const endsString =
-      endsAt.getTime() > Date.now()
-        ? `Ends ${moment(endsAt).fromNow()}`
+      timeLeft > 0
+        ? `Ends in ${ms(timeLeft / 1000)}`
         : `The giveaway has ended`;
     const giveawayEmbed = embeds
       .empty()
@@ -103,6 +104,4 @@ export default class embeds {
 
     return giveawayEmbed;
   }
-
-  // static giveawayRaw()
 }

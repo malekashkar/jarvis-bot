@@ -14,8 +14,6 @@ export default class RememberCommand extends ReminderCommands {
     .setName("remember")
     .setDescription("Create a new reminder for yourself.")
   
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction, userData: DocumentType<User>) {
     const reaction = await optionsQuestion(
         interaction,

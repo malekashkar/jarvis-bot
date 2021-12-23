@@ -12,8 +12,6 @@ export default class DeleteCommand extends ReminderCommands {
     .addNumberOption(opt =>
       opt.setName("reminder id").setDescription("The ID of your reminder.").setRequired(true))
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction, userData: DocumentType<User>,) {
     const id = interaction.options.getNumber("reminder id");
     const reminder = userData.reminders.find((x) => x.id === id);

@@ -8,8 +8,6 @@ export default class CreateMemeCommand extends FunCommands {
     .setName("creatememe")
     .setDescription("Crease a custom meme by yourself!");
     
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     registerFont("./src/util/arimo.ttf", { family: "Arimo" });
 

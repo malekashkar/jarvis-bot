@@ -6,7 +6,7 @@ import DbUser from "../../models/user";
 import embeds from "../../util/embed";
 import _ from "lodash";
 import { emojis, toTitleCase } from "../../util";
-import { Groups } from "..";
+import { Groups, Permissions } from "..";
 import { SlashCommandBuilder } from "@discordjs/builders";
 
 export default class CodeCommand extends AdminCommands {
@@ -17,9 +17,7 @@ export default class CodeCommand extends AdminCommands {
       sub.setName("list").setDescription("List all of the available codes."))
     .addSubcommand(sub =>
       sub.setName("create").setDescription("Create a new code for someone to redeem."))
-
-  permission = "owner";
-
+      
   async run(
     interaction: CommandInteraction,
     _userData: DocumentType<DbUser>,

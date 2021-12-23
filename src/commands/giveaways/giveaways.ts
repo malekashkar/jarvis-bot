@@ -1,5 +1,5 @@
 import { CommandInteraction, TextChannel } from "discord.js";
-import { GiveawayModel, RoleMultiplier } from "../../models/giveaway";
+import { Giveaway, GiveawayModel, Location, Requirements, RoleMultiplier } from "../../models/giveaway";
 import { parseToInteger } from "../../util";
 import embeds from "../../util/embed";
 import {
@@ -25,7 +25,7 @@ export default class GiveawayCommand extends GiveawayCommands {
             giveawaySettings.prize,
             giveawaySettings.cappedEntries,
             giveawaySettings.winners,
-            giveawaySettings.endsAt,
+            giveawaySettings.time,
             giveawaySettings.messageRequirements,
             giveawaySettings.roleRequirements,
             giveawaySettings.roleMultipliers
@@ -34,23 +34,22 @@ export default class GiveawayCommand extends GiveawayCommands {
       });
       await giveawayMessage.react("🎉");
   
-      await GiveawayModel.create({
-        prize: giveawaySettings.prize,
-        winners: giveawaySettings.winners,
-        cappedEntries: giveawaySettings.cappedEntries,
-        location: {
-          guildId: interaction.guildId,
-          channelId: giveawaySettings.channel.id,
-          messageId: giveawayMessage.id,
-        },
-        endsAt: giveawaySettings.endsAt,
-        requirements: {
-          messageRequirement: giveawaySettings.messageRequirements,
-          roleRequirements: giveawaySettings.roleRequirements.map(x => x.id),
-          multipliers: giveawaySettings.roleMultipliers,
-          guildRequirements: giveawaySettings.guildRequirements,
-        },
-      });
+      const location = new Location(interaction.guildId, giveawaySettings.channel.id, giveawayMessage.id);
+      const requirements = new Requirements(
+        giveawaySettings.roleRequirements.map(x => x.id),
+        giveawaySettings.messageRequirements, 
+        giveawaySettings.roleMultipliers,
+        giveawaySettings.guildRequirements
+      );
+      const giveaway = new Giveaway(
+        giveawaySettings.prize,
+        giveawaySettings.winners,
+        location,
+        giveawaySettings.time,
+        Date.now(),
+        requirements
+      );
+      await GiveawayModel.create(giveaway);
     } else {
       return interaction.reply({
         embeds: [embeds.error(giveawaySettings.error)]
@@ -108,7 +107,6 @@ export default class GiveawayCommand extends GiveawayCommands {
       messageRequirements: parseInt(messageRequirementQuestion),
       roleRequirements: Array.from(roleRequirementsQuestion.values()),
       time: parsedTime,
-      endsAt: new Date(Date.now() + parsedTime),
       roleMultipliers,
       guildRequirements
     }

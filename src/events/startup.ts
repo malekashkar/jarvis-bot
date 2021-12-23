@@ -17,10 +17,12 @@ export default class startEvent extends Event {
     // Register invites - Use redis
     for(const gCache of this.client.guilds.cache.values()) {
       const guild = await gCache.fetch();
-      const invites = await guild.invites.fetch();
-      for(const [inviteCode, invite] of invites) {
-        if(!this.client.inviteCodes.has(inviteCode)) {
-          this.client.inviteCodes.set(inviteCode, invite);
+      if(guild.me.permissions.has("MANAGE_GUILD")) {
+        const invites = await guild.invites.fetch();
+        for(const [inviteCode, invite] of invites) {
+          if(!this.client.inviteCodes.has(inviteCode)) {
+            this.client.inviteCodes.set(inviteCode, invite);
+          }
         }
       }
     }

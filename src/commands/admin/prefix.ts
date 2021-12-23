@@ -13,8 +13,6 @@ export default class PrefixCommand extends AdminCommands {
     .addStringOption(sub =>
       sub.setName("prefix").setDescription("The new prefix you want to set.").setRequired(true));
 
-  permission = "OWNER";
-
   async run(
     interaction: CommandInteraction,
     _userData: DocumentType<User>,

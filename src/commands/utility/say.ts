@@ -8,8 +8,6 @@ export default class sayCommand extends UtilityCommands {
   slashCommand = new SlashCommandBuilder()
     .setName("say").setDescription("Send a message somewhere specific.")
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const option = await optionsQuestion(
       interaction,

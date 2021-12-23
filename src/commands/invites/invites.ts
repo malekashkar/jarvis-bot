@@ -1,17 +1,15 @@
-import ModCommands from ".";
 import { CommandInteraction } from "discord.js";
 import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { InviteModel } from "../../models/invite";
+import InviteCommands from ".";
 
-export default class InvitesCommand extends ModCommands {
+export default class InvitesCommand extends InviteCommands {
   slashCommand = new SlashCommandBuilder()
     .setName("invites")
     .setDescription("Check your own or a guild members invites.")
     .addUserOption(opt =>
         opt.setName("user").setDescription("Check a guild member's invites."));
-
-  permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
     const user = interaction.options.getUser("user");

@@ -12,8 +12,6 @@ export default class TranscriptCommand extends UtilityCommands {
     .setName("transcript")
     .setDescription("Create a transcrit file of the message in a channel.");
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const msg = await interaction.channel.messages.fetch({ limit: 100 });
     const text = Array.from(msg.values())

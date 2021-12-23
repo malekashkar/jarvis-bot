@@ -9,8 +9,6 @@ export default class CleanCommand extends ModCommands {
     .setName("clean")
     .setDescription("Delete messages from a channel.");
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const userQuestion = await getTaggedUsersOrCancel(interaction, "Tag the user messages you would like to delete.");
     const amount = await numberQuestion(interaction,"How many messages would you like to delete? Up to 100.");

@@ -10,7 +10,6 @@ export default class GuildCommand extends UtilityCommands {
     .setDescription("Get a list of all guilds or check a specific one.");
 
   disabled = true;
-  permission = "ACCESS";
 
   async run(interaction: CommandInteraction) {
     const guilds = Array.from(this.client.guilds.cache.values());

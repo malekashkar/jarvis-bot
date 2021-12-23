@@ -12,8 +12,6 @@ export default class PayCommand extends AdminCommands {
     .addNumberOption(option =>
       option.setName("amount").setDescription("The price of the invoice.").setRequired(true));
 
-  permission = "OWNER";
-
   async run(interaction: CommandInteraction) {
     const price = interaction.options.getNumber("amount");
     if (!price)

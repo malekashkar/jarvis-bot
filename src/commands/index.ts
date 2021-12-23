@@ -7,9 +7,14 @@ import { Guild } from "../models/guild";
 import { SlashCommandBuilder, SlashCommandSubcommandsOnlyBuilder, SlashCommandOptionsOnlyBuilder } from "@discordjs/builders";
 
 export type Groups = keyof ModulePrices;
+export enum Permissions { 
+  OWNER = 2,
+  ACCESS = 1,
+  NONE = 0
+};
 
 export default abstract class Command {
-  permission: string;
+  permission: Permissions;
   disabled = false;
   client: Client;
     

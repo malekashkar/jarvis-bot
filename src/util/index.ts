@@ -2,7 +2,7 @@ import dotenv from "dotenv";
 import path from "path";
 import { DocumentType } from "@typegoose/typegoose";
 import User from "../models/user";
-import { Groups } from "../commands";
+import { Groups, Permissions } from "../commands";
 import settings from "../settings";
 import fetch from "node-fetch";
 
@@ -59,11 +59,11 @@ export interface ISettings {
 
 export function permissionCheck(
   userData: DocumentType<User>,
-  permissionType: string,
+  permissionType: Permissions,
   module: Groups
 ) {
   if (
-    permissionType.toLowerCase() === "access" &&
+    permissionType == Permissions.ACCESS &&
     (!userData.access ||
       !userData.modules
         .map((x) => x.toLowerCase())
@@ -72,7 +72,7 @@ export function permissionCheck(
   )
     return false;
   else if (
-    permissionType.toLowerCase() === "owner" &&
+    permissionType == Permissions.OWNER &&
     !settings.ownerId.includes(userData.userId)
   )
     return false;

@@ -18,8 +18,6 @@ export default class PermsCommand extends ModCommands {
     .addStringOption(sub =>
       sub.setName("role name").setDescription("The exact name of the role").setRequired(true));
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const type = interaction.options.getString("perm type");
     const guildId = interaction.options.getString("guild id");

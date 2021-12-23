@@ -6,6 +6,7 @@ import { emojis, permissionCheck } from "../../util";
 import Global from "../../models/global";
 import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { Permissions } from "..";
 
 export interface IGroup {
   commands: string[];
@@ -16,6 +17,8 @@ export default class DashCommand extends UtilityCommands {
   slashCommand = new SlashCommandBuilder()
     .setName("help")
     .setDescription("Load up the help menu.");
+
+  permission = Permissions.NONE;
 
   async run(
     interaction: CommandInteraction,

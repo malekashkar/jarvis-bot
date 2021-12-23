@@ -20,20 +20,22 @@ export default class InvitesAdd extends Event {
                         invitedId: member.id
                     });
 
-                    if(dbInvite) {
-                        if(dbInvite.left) {
-                            dbInvite.left = false;
-                            await dbInvite.save();
+                    if(cachedInvite.inviter.id != member.id) {
+                        if(dbInvite) {
+                            if(dbInvite.left) {
+                                dbInvite.left = false;
+                                await dbInvite.save();
+                            }
+                        } else {
+                            await InviteModel.create(
+                                new DbInvite(
+                                    cachedInvite.inviter.id, // Inviter ID
+                                    cachedInvite.guild.id, // Guild ID
+                                    member.id, // Invited ID
+                                    member.joinedTimestamp // Timestamp
+                                )
+                            );
                         }
-                    } else {
-                        await InviteModel.create(
-                            new DbInvite(
-                                cachedInvite.inviter.id, // Inviter ID
-                                cachedInvite.guild.id, // Guild ID
-                                member.id, // Invited ID
-                                member.joinedTimestamp // Timestamp
-                            )
-                        );
                     }
 
                     this.client.inviteCodes.set(currentInvite.code, currentInvite);

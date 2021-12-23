@@ -12,8 +12,6 @@ export default class LockdownCommand extends ModCommands {
         .addChoice("Guild", "guild")
         .addChoice("Channel", "channel"));
 
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     if (!interaction.guild) return;
 

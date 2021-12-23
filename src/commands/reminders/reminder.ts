@@ -11,7 +11,6 @@ export default class ReminderCommand extends ReminderCommands {
     .setDescription("Check a reminder or get a list of them.")
     .addNumberOption(opt =>
       opt.setName("reminder id").setDescription("The ID of the reminder"));
-  permission = "ACCESS";
 
   async run(interaction: CommandInteraction, userData: DocumentType<User>) {
     const id = interaction.options.getNumber("reminder id");

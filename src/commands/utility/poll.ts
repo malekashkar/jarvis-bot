@@ -10,8 +10,6 @@ export default class PollCommand extends UtilityCommands {
     .setName("poll")
     .setDescription("Create a new poll interface.");
     
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const pollQuestion = await stringQuestion(interaction, "What would you like the poll question to be?");
     if(!pollQuestion) return interaction.reply({

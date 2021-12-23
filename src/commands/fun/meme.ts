@@ -8,8 +8,6 @@ export default class MemeCommand extends FunCommands {
     .setName("meme")
     .setDescription("Looks like you can use some memes right now.");
     
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     return interaction.reply({ embeds: [new MessageAttachment(await imgurImage("meme"))] });
   }

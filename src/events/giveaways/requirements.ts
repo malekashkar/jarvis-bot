@@ -1,8 +1,8 @@
-import { MessageReaction, User } from "discord.js";
-import Event, { EventNameType, Groups } from ".";
-import { GiveawayModel } from "../models/giveaway";
-import { StatsModel } from "../models/stats";
-import embeds from "../util/embed";
+import { GuildInvitableChannelResolvable, MessageReaction, User } from "discord.js";
+import Event, { EventNameType, Groups } from "..";
+import { GiveawayModel } from "../../models/giveaway";
+import { StatsModel } from "../../models/stats";
+import embeds from "../../util/embed";
 
 export default class GiveawayRequirements extends Event {
   groupName: Groups = "giveaways";
@@ -29,8 +29,7 @@ export default class GiveawayRequirements extends Event {
             statsData.messages < giveawayData.requirements.messageRequirement
           ) {
             await reaction.users.remove(user);
-            await user
-              .send({
+            await user.send({
                 embeds: [
                   embeds.error(
                     `You need **${giveawayData.requirements.messageRequirement}** messages in order to enter this giveaway!\n**Note: You currently have ${statsData.messages} messages.**`
@@ -52,10 +51,9 @@ export default class GiveawayRequirements extends Event {
             .map((x) => message.guild.roles?.resolve(x)?.name)
             .filter((x) => !!x)
             .join(", ");
-          await reaction.users.remove(user);
 
-          await user
-            .send({
+          await reaction.users.remove(user);
+          await user.send({
               embeds: [
                 embeds.error(
                   `You need one of the following roles to enter this giveaway: ${roles}`
@@ -63,6 +61,41 @@ export default class GiveawayRequirements extends Event {
               ]
             })
             .catch(() => {});
+        }
+
+        if(giveawayData.requirements.guildRequirements.length) {
+          let missingGuilds = [];
+
+          for(const guildId of giveawayData.requirements.guildRequirements) {
+            const guild = await this.client.guilds.fetch(guildId);
+            if(guild) {
+              if(!guild.members.cache.has(user.id)) {
+                if(!missingGuilds.length) await reaction.users.remove(user);
+
+                const inviteChannel = guild.channels.cache.filter(x => x.type == "GUILD_TEXT").first() as GuildInvitableChannelResolvable;
+                missingGuilds.push((await guild.invites.create(inviteChannel)).url);
+              }
+            } else {
+              await reaction.message.channel.send({
+                embeds: [embeds.error(
+                  `One of the guild requirements in (this giveaway)[${reaction.message.url}] doesn't have Jarvis in it.\n`
+                 + `The requirement will be ignored unless Jarvis is invited.`
+                 )]
+              })
+            }
+          }
+
+          if(missingGuilds.length) {
+            const formatted = missingGuilds.map(x => `◦  ${x}`).join("\n");
+            await user.send({
+              embeds: [
+                embeds.error(
+                  `You must join the following guilds to enter the giveaway:\n${formatted}`
+                )
+              ]
+            })
+            .catch(() => {});
+          }
         }
       }
     }

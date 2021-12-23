@@ -7,8 +7,6 @@ export default class CoinflipCommand extends FunCommands {
     .setName("coinflip")
     .setDescription("Flip a coin and receive a random side.");
     
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const random = ["heads", "tails"][Math.floor(Math.random() * 2)];
 

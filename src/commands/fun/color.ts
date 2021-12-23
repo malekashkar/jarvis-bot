@@ -7,8 +7,6 @@ export default class ColorCommand extends FunCommands {
     .setName("color")
     .setDescription("Receive a random HEX color.");
     
-  permission = "ACCESS";
-
   async run(interaction: CommandInteraction) {
     const color = Math.floor(Math.random()*16777215).toString(16);
     return interaction.reply({
