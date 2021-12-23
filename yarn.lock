@@ -103,9 +103,9 @@
     "@types/node" "*"
 
 "@types/coinbase-commerce-node@^1.0.5":
-  version "1.0.5"
-  resolved "https://registry.npmjs.org/@types/coinbase-commerce-node/-/coinbase-commerce-node-1.0.5.tgz"
-  integrity sha512-a8n5opiVSdeBvGC2v9EOgOU1H3HsXEq0Ji2kE+xhTPPYD/k9I5XMywbfZ1tQG92oPUG3vM8ssqxmWlkfZwNDLQ==
+  version "1.0.6"
+  resolved "https://registry.yarnpkg.com/@types/coinbase-commerce-node/-/coinbase-commerce-node-1.0.6.tgz#7c0f4140ffda80d9099b399b39ca53780a4a5692"
+  integrity sha512-GuDFd6Ht/dOZUUbUrJWCxoNwOmMt1sLmn8kY7AkF7x3Np5B0Xy40DVv6SPeFcdL4lO3TAeHI8sogix0D01NJOg==
 
 "@types/connect@*":
   version "3.4.34"
