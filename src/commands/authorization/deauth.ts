@@ -1,8 +1,6 @@
 import AuthCommands from ".";
-import { DocumentType } from "@typegoose/typegoose";
 import User, { UserModel } from "../../models/user";
 import embeds from "../../util/embed";
-import { getTaggedUsers } from "../../util/questions";
 import { CommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { Permissions } from "..";
@@ -11,19 +9,15 @@ export default class DeauthCommand extends AuthCommands {
   slashCommand = new SlashCommandBuilder()
     .setName("deauth")
     .setDescription("Remove someone's permission from using the discord bot.")
+    .addUserOption(opt =>
+      opt.setName("user").setDescription("The user you would like to de-authorize.").setRequired(true));
     
   permission: Permissions = Permissions.OWNER;
 
-  async run(interaction: CommandInteraction, userData: DocumentType<User>) {
-    const users = await getTaggedUsers(
-      interaction,
-      `Who would you like to deauth? Tag them!`
-    );
-    if (!users) return;
-
-    const user = users.first();
-    userData = await UserModel.findById(user.id);
-    if (!userData || !userData.access)
+  async run(interaction: CommandInteraction) {
+    const user = interaction.options.getUser("user", true);
+    const userData = await UserModel.findOne({ userId: user.id});
+    if (!userData?.access)
       return interaction.reply({
         embeds: [
           embeds.error(`That user is not authorized, you cannot deauth him!`)

@@ -33,8 +33,8 @@ export class LastAd {
 }
 
 export default class User {
-  @prop()
-  userId!: string;
+  @prop({ unique: true })
+  userId: string;
 
   @prop()
   access?: boolean;

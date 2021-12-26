@@ -206,35 +206,6 @@ export async function stringQuestionOrCancel(
   }
 }
 
-export async function getTaggedUsers(
-  interaction: CommandInteraction,
-  question: string,
-  userId?: string
-) {
-  const reactionUserId = userId || interaction.user.id;
-
-  await (interaction.deferred || interaction.replied ? interaction.editReply.bind(interaction) : interaction.reply.bind(interaction))({ 
-    embeds: [embeds.question(question)]
-  });
-  const questionMessage = await interaction.fetchReply();
-
-  if(questionMessage instanceof Message) {
-    const messageCollector = await interaction.channel.awaitMessages({
-      filter: (x) =>
-        x.author.id === reactionUserId &&
-        x.mentions.users.size > 0,
-      max: 1,
-      time: 900000,
-      errors: ["time"]
-    });
-  
-    if (messageCollector.first().deletable)
-      await messageCollector.first().delete();
-  
-    return messageCollector.first().mentions.users;
-  }
-}
-
 export async function getTaggedUsersOrCancel(
   interaction: CommandInteraction,
   question: string,
