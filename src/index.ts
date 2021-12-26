@@ -139,15 +139,15 @@ export default class Client extends BaseManager {
     for (const commandFile of commandFiles) {
       const commandPath = path.join(directory, commandFile);
       const commandFileStats = fs.statSync(commandPath);
-      if (!commandFileStats.isFile()) {
+
+      if (commandFileStats.isDirectory()) {
         this.loadCommands(commandPath);
         continue;
-      }
-      if (
+      } else if (
+        !commandFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(commandFile) ||
         path.parse(commandPath).name === "index"
-      )
-        continue;
+      ) continue;
 
       const tmpCommand = require(commandPath);
       const command =
@@ -180,6 +180,7 @@ export default class Client extends BaseManager {
     for (const eventFile of eventFiles) {
       const eventPath = path.join(directory, eventFile);
       const eventFileStats = fs.statSync(eventPath);
+
       if (eventFileStats.isDirectory()) {
         this.loadEvents(eventPath);
         continue;
@@ -212,12 +213,15 @@ export default class Client extends BaseManager {
     for (const taskFile of tasksFiles) {
       const taskPath = path.join(directory, taskFile);
       const taskFileStats = fs.statSync(taskPath);
-      if (
+
+      if (taskFileStats.isDirectory()) {
+        this.loadTasks(taskPath);
+        continue;
+      } else if (
         !taskFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(taskFile) ||
         path.parse(taskPath).name === "index"
-      )
-        continue;
+      ) continue;
 
       const tmpTask = require(taskPath);
       const task =
