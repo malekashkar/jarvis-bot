@@ -42,10 +42,11 @@ export default class CodeCommand extends AdminCommands {
         })
       }
     } else {
+      console.log(this.client.commands.filter(x => x.permission != Permissions.OWNER));
       const modules: string[] = _.sortedUniq(
         this.client.commands
+          .filter(x => x.permission != Permissions.OWNER && x.permission != Permissions.NONE)
           .map((x) => toTitleCase(x.groupName))
-          .filter((x) => !x.toLowerCase().includes("admin"))
       );
       const moduleEmojis = emojis.slice(0, modules.length);
       const modulesDescription = modules
