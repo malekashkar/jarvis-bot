@@ -47,9 +47,6 @@ export class ModulePrices {
 }
 
 export default class Global {
-  @prop({ default: "-" })
-  prefix?: string;
-
   @prop({ type: CodeInfo })
   codes?: CodeInfo[];
 

@@ -39,7 +39,7 @@ export default class CoinbaseTask extends Task {
                   embeds: [
                     embeds.normal(
                       `Payment Completed`,
-                      `Please run the command \`${globalData.prefix}auth ${code}\` in order to gain access to your features.`
+                      `Please run the command \`/auth ${code}\` in order to gain access to your features.`
                     )
                   ]
                 });

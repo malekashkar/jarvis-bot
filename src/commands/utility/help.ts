@@ -59,7 +59,7 @@ export default class DashCommand extends UtilityCommands {
             return {
               name: categoryEmojis[i++] + ` ${key}`,
               value: `${value.commands
-                .map((x) => `${globalData.prefix}${x}`)
+                .map((x) => `/${x}`)
                 .join("\n")}`,
               inline: true,
             };
@@ -92,7 +92,7 @@ export default class DashCommand extends UtilityCommands {
           category.commands
             .map(
               (x, i) =>
-                `**${globalData.prefix}${x}** ~ ${category.descriptions[i]}`
+                `**/${x}** ~ ${category.descriptions[i]}`
             )
             .join("\n")
         )
