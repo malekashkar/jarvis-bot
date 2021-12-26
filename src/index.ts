@@ -180,15 +180,14 @@ export default class Client extends BaseManager {
     for (const eventFile of eventFiles) {
       const eventPath = path.join(directory, eventFile);
       const eventFileStats = fs.statSync(eventPath);
-      if (!eventFileStats.isFile()) {
-        this.loadCommands(eventPath);
+      if (eventFileStats.isDirectory()) {
+        this.loadEvents(eventPath);
         continue;
-      }
-      if (
+      } else if (
+        !eventFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(eventFile) ||
         path.parse(eventPath).name === "index"
-      )
-        continue;
+      ) continue;
 
       const tmpEvent = require(eventPath);
       const event =
