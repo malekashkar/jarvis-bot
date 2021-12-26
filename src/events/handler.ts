@@ -1,7 +1,7 @@
 import { Interaction } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
-import { GuildModel, Guild as DbGuild } from "../models/guild";
+import { GuildModel, Guild as DbGuild, Guild } from "../models/guild";
 import Event, { Groups } from ".";
 import { permissionCheck } from "../util";
 import { DocumentType } from "@typegoose/typegoose";
@@ -38,7 +38,7 @@ export default class CommandHandler extends Event {
     if (interaction.guild) {
       guildData =
         (await GuildModel.findOne({ guildId: interaction.guildId })) ||
-        (await GuildModel.create({ guildId: interaction.guildId }));
+        (await GuildModel.create(new Guild(interaction.guildId)));
     }
 
     const command = interaction.commandName;

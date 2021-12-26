@@ -46,14 +46,18 @@ export class Roles {
 }
 
 export class Guild {
-  @prop()
-  guildId!: string;
+  @prop({ unique: true })
+  guildId: string;
 
   @prop({ type: Roles, default: [] })
   roles?: Roles[];
 
-  @prop({ type: GhostPing, default: {} })
+  @prop({ required: false, type: GhostPing, default: {} })
   ghostPing: GhostPing;
+
+  constructor(guildId: string) {
+    this.guildId = guildId;
+  }
 }
 
 export const GuildModel = getModelForClass(Guild);

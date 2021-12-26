@@ -3,7 +3,7 @@ import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import settings from "../settings";
 import Event, { Groups } from ".";
-import { GuildModel } from "../models/guild";
+import { Guild, GuildModel } from "../models/guild";
 import ms from "ms";
 import embeds from "../util/embed";
 
@@ -23,7 +23,7 @@ export default class Advertisement extends Event {
 
     const guildData =
       (await GuildModel.findOne({ guildId: message.guild.id })) ||
-      (await GuildModel.create({ guildId: message.guild.id }));
+      (await GuildModel.create(new Guild(message.guild.id)));
 
     if (message.content.indexOf(globalData.prefix) !== 0) {
       if (message.channel instanceof TextChannel) {
