@@ -34,7 +34,8 @@ export default class CodeCommand extends AdminCommands {
                 .map((x, i) => `${i + 1}. **${x.code}** ~ (${x.modules.join(", ")})`)
                 .join("\n")
             )
-          ]
+          ],
+          ephemeral: true
         });
       } else {
         return interaction.reply({
