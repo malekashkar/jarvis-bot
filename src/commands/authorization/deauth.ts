@@ -5,12 +5,15 @@ import embeds from "../../util/embed";
 import { getTaggedUsers } from "../../util/questions";
 import { CommandInteraction } from "discord.js";
 import { SlashCommandBuilder } from "@discordjs/builders";
+import { Permissions } from "..";
 
 export default class DeauthCommand extends AuthCommands {
   slashCommand = new SlashCommandBuilder()
     .setName("deauth")
     .setDescription("Remove someone's permission from using the discord bot.")
     
+  permission: Permissions = Permissions.OWNER;
+
   async run(interaction: CommandInteraction, userData: DocumentType<User>) {
     const users = await getTaggedUsers(
       interaction,

@@ -1,16 +1,17 @@
 import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
-import { MessageEmbed, Collection, CommandInteraction } from "discord.js";
+import { Collection, CommandInteraction } from "discord.js";
 import User from "../../models/user";
-import { emojis, permissionCheck } from "../../util";
-import Global from "../../models/global";
+import { permissionCheck } from "../../util";
 import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { Permissions } from "..";
+import Paginator from "../../util/paginator";
 
-export interface IGroup {
-  commands: string[];
-  descriptions: string[];
+
+interface CommandInfo {
+  name: string;
+  description: string;
 }
 
 export default class DashCommand extends UtilityCommands {
@@ -23,81 +24,42 @@ export default class DashCommand extends UtilityCommands {
   async run(
     interaction: CommandInteraction,
     userData: DocumentType<User>,
-    globalData: DocumentType<Global>
   ) {
-    const help: Collection<string, IGroup> = new Collection();
+    const groups: Collection<string, CommandInfo[]> = new Collection();
     for (const commandObj of Array.from(this.client.commands.values())) {
-      if (!commandObj.groupName) continue;
       if (
-        commandObj.permission &&
-        !permissionCheck(userData, commandObj.permission, commandObj.groupName)
+        !commandObj.groupName ||
+        (commandObj.permission &&
+        !permissionCheck(userData, commandObj.permission, commandObj.groupName))
       )
         continue;
 
-      const group = help.get(toTitleCase(commandObj.groupName));
+      const group = groups.get(toTitleCase(commandObj.groupName));
       if (!group) {
-        help.set(toTitleCase(commandObj.groupName), {
-          commands: [commandObj.slashCommand.name],
-          descriptions: [commandObj.slashCommand.description],
-        });
+        groups.set(toTitleCase(commandObj.groupName), [{
+          name: commandObj.slashCommand.name,
+          description: commandObj.slashCommand.description
+        }]);
       } else {
-        group.commands.push(commandObj.slashCommand.name);
-        group.descriptions.push(commandObj.slashCommand.description);
+        group.push({
+          name: commandObj.slashCommand.name,
+          description: commandObj.slashCommand.description
+        });
       }
     }
 
-    let i = 0;
-    const categories = Array.from(help.keys());
-    const categoryEmojis = emojis.slice(0, categories.length);
-
-    const dashMessage = await interaction.channel.send({
-      embeds: [
-        new MessageEmbed()
-        .setTitle(`Jarvis Help Menu`)
-        .addFields(
-          help.map((value, key) => {
-            return {
-              name: categoryEmojis[i++] + ` ${key}`,
-              value: `${value.commands
-                .map((x) => `/${x}`)
-                .join("\n")}`,
-              inline: true,
-            };
-          })
-        )
-        .setColor("RANDOM")
-      ]
-    });
-    for (const emoji of categoryEmojis) {
-      await dashMessage.react(emoji);
-    }
-
-    const categoryReaction = await dashMessage.awaitReactions({
-      filter: (r, u) => u.id === interaction.user.id && emojis.includes(r.emoji.name),
-      max: 1,
-      time: 900000,
-      errors: ["time"]
-    });
-    if (!categoryReaction) return;
-    if (interaction.channel.type == "GUILD_TEXT")
-      await dashMessage.reactions.removeAll();
-
-    const chosenCategory =
-      categories[categoryEmojis.indexOf(categoryReaction.first().emoji.name)];
-    const category = help.get(chosenCategory);
-    dashMessage.edit({
-      embeds: [
-        embeds.normal(
-          chosenCategory + " Menu",
-          category.commands
-            .map(
-              (x, i) =>
-                `**/${x}** ~ ${category.descriptions[i]}`
-            )
-            .join("\n")
-        )
-      ]
-    });
+    new Paginator(
+      interaction, 
+      groups.size,
+      async(pageIndex: number) => {
+        const groupName = Array.from(groups.keys())[pageIndex];
+        const group = Array.from(groups.values())[pageIndex];
+        const formatted = group.map((command) => {
+          return `**/${command.name}** ~ ${command.description}`
+        });
+        return embeds.normal(`Jarvis Help Menu | ${groupName} Module`, formatted.join("\n"));
+      }
+    ).start();
   }
 }
 

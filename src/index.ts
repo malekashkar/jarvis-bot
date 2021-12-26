@@ -20,6 +20,7 @@ import logger from "./util/logger";
 import { Location } from "./models/giveaway";
 import Task from "./tasks";
 import settings from "./settings";
+import { SlashCommand } from "./types";
 
 dotenv.config();
 
@@ -97,25 +98,33 @@ export default class Client extends BaseManager {
   }
 
   async loadSlashCommands(client: this) {
-    if(process.env.MODE == "prod") {
-      try {
-        await client.discordRestApi.put(
-          Routes.applicationCommands(client.user.id),
-          { body: client.commands.map(x => x.slashCommand) },
-        );
-  
-        logger.info("SLASH_COMMANDS", "Slash commands have been loaded successfully!");
-      } catch (error) {
-        logger.error("SLASH_COMMANDS", error)
-      }
-    } else {
+    if(process.env.NODE_ENV == "dev") {
       try {
         await client.discordRestApi.put(
           Routes.applicationGuildCommands(client.user.id, settings.testingGuildId),
           { body: client.commands.map(x => x.slashCommand) },
         );
+
+        logger.info("SLASH_COMMANDS", "Testing Guild Slash Commands have been loaded successfully!");
+      } catch (error) {
+        logger.error("SLASH_COMMANDS", error)
+      }
+    } else {
+      try {
+        for(const guild of this.guilds.cache.values()) {
+          client.discordRestApi.get(Routes.applicationGuildCommands(client.user.id, guild.id))
+          .then((data: SlashCommand[]) => {
+            Promise.all(data.map(cmd => client.discordRestApi.delete(`${Routes.applicationGuildCommands(client.user.id, guild.id)}/${cmd.id}`)))
+          })
+          .catch(console.error);
+        }
+
+        await client.discordRestApi.put(
+          Routes.applicationCommands(client.user.id),
+          { body: client.commands.map(x => x.slashCommand) },
+        );
   
-        logger.info("SLASH_COMMANDS", "Slash commands have been loaded successfully!");
+        logger.info("SLASH_COMMANDS", "Global Slash Commands have been loaded successfully!");
       } catch (error) {
         logger.error("SLASH_COMMANDS", error)
       }
@@ -135,7 +144,6 @@ export default class Client extends BaseManager {
         continue;
       }
       if (
-        !commandFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(commandFile) ||
         path.parse(commandPath).name === "index"
       )
@@ -172,8 +180,11 @@ export default class Client extends BaseManager {
     for (const eventFile of eventFiles) {
       const eventPath = path.join(directory, eventFile);
       const eventFileStats = fs.statSync(eventPath);
+      if (!eventFileStats.isFile()) {
+        this.loadCommands(eventPath);
+        continue;
+      }
       if (
-        !eventFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(eventFile) ||
         path.parse(eventPath).name === "index"
       )
@@ -187,6 +198,7 @@ export default class Client extends BaseManager {
       try {
         const eventObj: Event = new event(this);
         if (eventObj?.eventName) {
+          console.log(eventObj.eventName);
           this.on(eventObj.eventName, (...args) => eventObj.handle(...args))
         }
       } catch (ignored) {}

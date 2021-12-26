@@ -5,6 +5,7 @@ import User from "../../models/user";
 import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
+import { Permissions } from "..";
 
 export default class AuthCommand extends AuthCommands {
   slashCommand = new SlashCommandBuilder()
@@ -12,6 +13,8 @@ export default class AuthCommand extends AuthCommands {
     .setDescription("Authorize yourself to get access to the bot.")
     .addStringOption(sub =>
       sub.setName("code").setDescription("Enter your authentication code.").setRequired(true));
+  
+  permission: Permissions = Permissions.NONE;
   
   async run(
     interaction: CommandInteraction,

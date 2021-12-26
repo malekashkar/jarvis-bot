@@ -14,7 +14,6 @@ export default class startEvent extends Event {
     this.client.loadSlashCommands(this.client);
     Logger.info("BOT", "The bot has been turned on!");
 
-    // Register invites - Use redis
     for(const gCache of this.client.guilds.cache.values()) {
       const guild = await gCache.fetch();
       if(guild.me.permissions.has("MANAGE_GUILD")) {
