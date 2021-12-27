@@ -1,10 +1,9 @@
 import { GuildMember } from "discord.js";
-import Event, { EventNameType, Groups } from "..";
+import Event, { EventNameType } from "..";
 import { DbInvite, InviteModel } from "../../models/invite";
 
 export default class InvitesAdd extends Event {
   eventName: EventNameType = "guildMemberAdd";
-  groupName: Groups = "default";
 
   async handle(member: GuildMember) {
     const guild = member.guild;

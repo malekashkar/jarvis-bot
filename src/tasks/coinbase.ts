@@ -7,7 +7,6 @@ import coinbase from "coinbase-commerce-node";
 
 export default class CoinbaseTask extends Task {
     taskName = "coinbase";
-    groupName: Groups = "default";
     interval = 60 * 1000;
 
     async execute() {
@@ -22,7 +21,7 @@ export default class CoinbaseTask extends Task {
             const invoice = await charges.retrieve(infoData.chargeId);
             if (!invoice) await infoData.updateOne({ endTime: new Date() });
     
-            if (invoice.payments[0]?.status === "COMPLETED") {
+            if (invoice.payments[0]?.status == "COMPLETED") {
               const code =
                 Math.random().toString(36).substring(2, 15) +
                 Math.random().toString(36).substring(2, 15);

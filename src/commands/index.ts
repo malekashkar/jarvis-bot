@@ -15,6 +15,7 @@ export enum Permissions {
 
 export default abstract class Command {
   permission: Permissions;
+  groupName: Groups;
   disabled = false;
   client: Client;
     
@@ -22,7 +23,6 @@ export default abstract class Command {
     this.client = client;
   }
   
-  abstract groupName: Groups;
   abstract slashCommand: SlashCommandBuilder |
     SlashCommandSubcommandsOnlyBuilder |
     SlashCommandOptionsOnlyBuilder |

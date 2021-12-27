@@ -15,7 +15,7 @@ export default class ReminderCommand extends ReminderCommands {
   async run(interaction: CommandInteraction, userData: DocumentType<User>) {
     const id = interaction.options.getNumber("reminder id");
     if(id) {
-      const reminder = userData.reminders.find((x) => x.id === id);
+      const reminder = userData.reminders.find((x) => x.id == id);
       if (!reminder)
         return interaction.reply({
           embeds: [embeds.error(`No reminder was found with the specified ID.`)]

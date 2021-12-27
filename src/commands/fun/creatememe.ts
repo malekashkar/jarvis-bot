@@ -12,18 +12,18 @@ export default class CreateMemeCommand extends FunCommands {
     registerFont("./src/util/arimo.ttf", { family: "Arimo" });
 
     function place(height: number, choice: string) {
-      if (choice === "top+") return height / 12;
-      if (choice === "top") return height / 4;
-      if (choice === "middle") return height / 2;
-      if (choice === "down") return height - height / 4;
-      if (choice === "down+") return height - height / 12;
+      if (choice == "top+") return height / 12;
+      if (choice == "top") return height / 4;
+      if (choice == "middle") return height / 2;
+      if (choice == "down") return height - height / 4;
+      if (choice == "down+") return height - height / 12;
     }
 
     const imgQuestion = await interaction.channel.send(
       `Please provide me with an image for the meme.`
     );
     const imgResponse = await interaction.channel.awaitMessages({ 
-      filter: (m: Message) => m.author.id === interaction.user.id && m.attachments.size > 0,
+      filter: (m: Message) => m.author.id == interaction.user.id && m.attachments.size > 0,
       max: 1 
     });
     if (imgQuestion.deletable) imgQuestion.delete();
@@ -43,7 +43,7 @@ export default class CreateMemeCommand extends FunCommands {
       `What would you like the meme text to be?`
     );
     const text = await interaction.channel.awaitMessages({
-      filter: (m) => m.author.id === interaction.user.id && m.content.length < 100,
+      filter: (m) => m.author.id == interaction.user.id && m.content.length < 100,
       max: 1
     });
     if (memeQuestion.deletable) memeQuestion.delete();
@@ -54,7 +54,7 @@ export default class CreateMemeCommand extends FunCommands {
     );
     const placement = await interaction.channel.awaitMessages({
       filter: (m) =>
-        m.author.id === interaction.user.id &&
+        m.author.id == interaction.user.id &&
         ["top+", "top", "middle", "down", "down+"].includes(m.content),
       max: 1
     });
@@ -66,7 +66,7 @@ export default class CreateMemeCommand extends FunCommands {
     );
     const text_size = await interaction.channel.awaitMessages({
       filter: (m) =>
-        m.author.id === interaction.user.id &&
+        m.author.id == interaction.user.id &&
         parseInt(m.content) > 10 &&
         parseInt(m.content) < 100,
       max: 1

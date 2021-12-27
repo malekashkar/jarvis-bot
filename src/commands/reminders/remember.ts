@@ -21,7 +21,7 @@ export default class RememberCommand extends ReminderCommands {
         ["🕐", "⏱️", "🔒"]
       );
 
-    if (reaction === "🕐") {
+    if (reaction == "🕐") {
       const id = await numberQuestion(interaction, "What is the ID of the reminder you would like to be reminded with?");
       if(!id) return;
 
@@ -30,7 +30,7 @@ export default class RememberCommand extends ReminderCommands {
 
       const time = Date.now() - new Date(timeResponse).getTime();
 
-      const reminder = userData.reminders.find((x) => x.id === id);
+      const reminder = userData.reminders.find((x) => x.id == id);
       if (!reminder) return interaction.reply({
           embeds: [embeds.error(`There is no reminder with that ID available!`)]
         });
@@ -59,11 +59,11 @@ export default class RememberCommand extends ReminderCommands {
           )
         ]
       });
-    } else if (reaction === "⏱️") {
+    } else if (reaction == "⏱️") {
       const id = await numberQuestion(interaction, "What is the ID of the reminder you would like to be reminded with?");
       if(!id) return;
 
-      const reminder = userData.reminders.find((x) => x.id === id);
+      const reminder = userData.reminders.find((x) => x.id == id);
       if (!reminder) return interaction.reply({
           embeds: [embeds.error(`There is no reminder with that ID available!`)]
         });
@@ -100,7 +100,7 @@ export default class RememberCommand extends ReminderCommands {
           )
         ]
       });
-    } else if (reaction === "🔒") {
+    } else if (reaction == "🔒") {
       const guildId = await stringQuestion(interaction, "What is the ID of the guild?");
       if (!guildId) return;
 

@@ -13,7 +13,7 @@ export default class CoinflipCommand extends FunCommands {
     return interaction.reply({
       attachments: [
         new MessageAttachment(
-          random === "heads"
+          random == "heads"
             ? `https://i.imgur.com/YiydiKH.png`
             : `https://i.imgur.com/cHkeN1v.png`
         )

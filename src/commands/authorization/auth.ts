@@ -6,6 +6,7 @@ import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { CommandInteraction } from "discord.js";
 import { Permissions } from "..";
+import _ from "lodash";
 
 export default class AuthCommand extends AuthCommands {
   slashCommand = new SlashCommandBuilder()
@@ -28,20 +29,19 @@ export default class AuthCommand extends AuthCommands {
           embeds.error(`Please provide the code you would like to redeem!`)
         ]
       });
-    else if (!globalData.codes.some((x) => x.code === code))
+    else if (!globalData.codes.some((x) => x.code == code))
       return interaction.reply({
         embeds: [
           embeds.error(`The code you provided is either invalid or outdated.`)
         ]
       });
 
-    const modules = globalData.codes.find((x) => x.code === code)?.modules;
-    globalData.codes = globalData.codes.filter((x) => x.code !== code);
-    await globalData.save();
-
     userData.access = true;
-    userData.modules = modules;
+    userData.modules = _.sortedUniq(userData.modules.concat(globalData.codes.find((x) => x.code == code).modules));
     await userData.save();
+
+    globalData.codes = globalData.codes.filter((x) => x.code.toLowerCase() !== code.toLowerCase());
+    await globalData.save();
 
     return interaction.reply({
       embeds: [

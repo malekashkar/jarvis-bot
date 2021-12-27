@@ -22,7 +22,7 @@ export default class CleanCommand extends ModCommands {
     const messages = (await interaction.channel.messages.fetch({ limit: amount }))
       ?.filter(m => Date.now() - m.createdTimestamp < 14 * 24 * 60 * 60 * 1000);
 
-    if(user) channel.bulkDelete(messages.filter((m) => m.author.id === user.id));
+    if(user) channel.bulkDelete(messages.filter((m) => m.author.id == user.id));
     else channel.bulkDelete(messages);
   }
 }

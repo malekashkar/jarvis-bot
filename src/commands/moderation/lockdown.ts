@@ -16,7 +16,7 @@ export default class LockdownCommand extends ModCommands {
     if (!interaction.guild) return;
 
     const option = interaction.options.getString("lockdown type");
-    if (option === "guild") {
+    if (option == "guild") {
       for (const channel of interaction.guild.channels.cache) {
         if (channel instanceof TextChannel || channel instanceof VoiceChannel)
           await lockChannel(channel);

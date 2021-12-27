@@ -5,7 +5,6 @@ import { StatsModel } from "../../models/stats";
 import embeds from "../../util/embed";
 
 export default class GiveawayRequirements extends Event {
-  groupName: Groups = "giveaways";
   eventName: EventNameType = "messageReactionAdd";
 
   async handle(reaction: MessageReaction, user: User) {
@@ -13,7 +12,7 @@ export default class GiveawayRequirements extends Event {
     if (reaction.message.partial) await reaction.message.fetch();
 
     const message = reaction.message;
-    if (reaction.emoji.name === "🎉") {
+    if (reaction.emoji.name == "🎉") {
       const giveawayData = await GiveawayModel.findOne({
         "location.messageId": message.id,
       });

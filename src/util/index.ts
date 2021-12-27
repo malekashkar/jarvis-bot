@@ -56,29 +56,6 @@ export interface ISettings {
   spreadsheet: string;
   projectId: string;
 }
-
-export function permissionCheck(
-  userData: DocumentType<User>,
-  permissionType: Permissions,
-  module: Groups
-) {
-  if (
-    permissionType == Permissions.ACCESS &&
-    (!userData.access ||
-      !userData.modules
-        .map((x) => x.toLowerCase())
-        .includes(module.toLowerCase())) &&
-    !settings.ownerId.includes(userData.userId)
-  )
-    return false;
-  else if (
-    permissionType == Permissions.OWNER &&
-    !settings.ownerId.includes(userData.userId)
-  )
-    return false;
-
-  return true;
-}
  
 export function parseToInteger(str: string) {
    let match = /^(-?(?:\d+)?\.?\d+) *(milliseconds?|msecs?|ms|seconds?|secs?|s|minutes?|mins?|m|hours?|hrs?|h|days?|d|weeks?|w|years?|yrs?|y)?$/i.exec(

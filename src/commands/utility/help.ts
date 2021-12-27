@@ -2,11 +2,11 @@ import UtilityCommands from ".";
 import { DocumentType } from "@typegoose/typegoose";
 import { Collection, CommandInteraction } from "discord.js";
 import User from "../../models/user";
-import { permissionCheck } from "../../util";
 import embeds from "../../util/embed";
 import { SlashCommandBuilder } from "@discordjs/builders";
 import { Permissions } from "..";
 import Paginator from "../../util/paginator";
+import { permissionCheck } from "../../events/handler";
 
 
 interface CommandInfo {
@@ -31,8 +31,7 @@ export default class DashCommand extends UtilityCommands {
         !commandObj.groupName ||
         (commandObj.permission &&
         !permissionCheck(userData, commandObj.permission, commandObj.groupName))
-      )
-        continue;
+      ) continue;
 
       const group = groups.get(toTitleCase(commandObj.groupName));
       if (!group) {

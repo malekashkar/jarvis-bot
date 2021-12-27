@@ -31,7 +31,7 @@ export default class GuildCommand extends UtilityCommands {
   
       const members = await guild.members.fetch();
       const onlineMemberCount = members.filter(
-        (m) => m.presence.status === "online"
+        (m) => m.presence.status == "online"
       ).size;
       const botsMemberCount = members.filter((member: GuildMember) => member.user.bot).size;
   

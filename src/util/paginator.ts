@@ -130,9 +130,9 @@ import {
         const reactionCollector = this.sentMessage.createReactionCollector({
             filter: (reaction, user) => {
                 return (
-                  user.id === this.interaction.user.id &&
+                  user.id == this.interaction.user.id &&
                   availableEmojiStrings.includes(reaction.emoji.name) &&
-                  !(reaction.me && reaction.users.cache.size === 1)
+                  !(reaction.me && reaction.users.cache.size == 1)
                 );
               },
               time: 60 * 1000,
@@ -159,7 +159,7 @@ import {
                 reaction.users.remove(user);
             });
           }
-          if (reaction.emoji.name === availableEmojis.first) {
+          if (reaction.emoji.name == availableEmojis.first) {
             if (this.currentPageIndex !== 0) {
               this.currentPageIndex = 0;
               this.sentMessage.edit({
@@ -167,7 +167,7 @@ import {
               });
               this.emit("first");
             }
-          } else if (reaction.emoji.name === availableEmojis.prev) {
+          } else if (reaction.emoji.name == availableEmojis.prev) {
             this.currentPageIndex--;
             if (this.currentPageIndex < 0)
               this.currentPageIndex = this.pageCount - 1;
@@ -175,10 +175,10 @@ import {
                   embeds: [await this.getDecoratedEmbed(this.currentPageIndex)]
               });
             this.emit("prev");
-          } else if (reaction.emoji.name === availableEmojis.stop) {
+          } else if (reaction.emoji.name == availableEmojis.stop) {
             reactionCollector.stop("stopped by user");
             this.emit("stop");
-          } else if (reaction.emoji.name === availableEmojis.next) {
+          } else if (reaction.emoji.name == availableEmojis.next) {
             this.currentPageIndex++;
             if (this.currentPageIndex >= this.pageCount) {
               this.currentPageIndex = 0;
@@ -187,7 +187,7 @@ import {
                 embeds: [await this.getDecoratedEmbed(this.currentPageIndex)]
             });
             this.emit("next");
-          } else if (reaction.emoji.name === availableEmojis.last) {
+          } else if (reaction.emoji.name == availableEmojis.last) {
             if (this.currentPageIndex !== this.pageCount - 1) {
               this.currentPageIndex = this.pageCount - 1;
               this.sentMessage.edit({

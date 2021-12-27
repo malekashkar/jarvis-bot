@@ -1,12 +1,10 @@
 import { DocumentType } from "@typegoose/typegoose";
-import { User } from "discord.js";
 import Task, { Groups } from ".";
 import { GiveawayModel } from "../models/giveaway";
 import { Guild, GuildModel } from "../models/guild";
 
 export default class GhostpingsTask extends Task {
     taskName = "ghostpings";
-    groupName: Groups = "friday";
     interval = 5e3;
 
     async execute() {

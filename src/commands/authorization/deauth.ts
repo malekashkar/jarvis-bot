@@ -16,7 +16,7 @@ export default class DeauthCommand extends AuthCommands {
 
   async run(interaction: CommandInteraction) {
     const user = interaction.options.getUser("user", true);
-    const userData = await UserModel.findOne({ userId: user.id});
+    const userData = await UserModel.findOne({ userId: user.id });
     if (!userData?.access)
       return interaction.reply({
         embeds: [

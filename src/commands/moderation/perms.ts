@@ -34,7 +34,7 @@ export default class PermsCommand extends ModCommands {
       embeds: [embeds.error("Could not find specified member with the ID in the guild!")]
     });
 
-    const role = guild.roles.cache.find((x) => x.name === roleName);
+    const role = guild.roles.cache.find((x) => x.name == roleName);
     if(!role) return interaction.reply({
       embeds: [embeds.error(`There doesn't seem to be a role with the name \`${roleName}\``)]
     });
@@ -44,14 +44,14 @@ export default class PermsCommand extends ModCommands {
         embeds: [embeds.error(`I don't have permissions to manage roles in that guild!`)]
       });
 
-    if (type === "set") await member.roles.add(role);
+    if (type == "set") await member.roles.add(role);
     else await member.roles.remove(role);
 
     return interaction.reply({
       embeds: [
         embeds
         .normal(
-          `Role` + type === "set" ? `Added` : `Removed`,
+          `Role` + type == "set" ? `Added` : `Removed`,
           `Role Name: ${role.name}`
         )
         .setThumbnail(member.user.avatarURL())

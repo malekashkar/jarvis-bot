@@ -16,9 +16,6 @@ export class CodeInfo {
 
 export class ModulePrices {
   @prop({ default: 5 })
-  default: number;
-
-  @prop({ default: 5 })
   administration: number;
 
   @prop({ default: 5 })

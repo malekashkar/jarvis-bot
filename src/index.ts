@@ -29,7 +29,6 @@ export default class Client extends BaseManager {
   server = express();
 
   commands: Collection<string, Command> = new Collection();
-
   inviteCodes: Collection<string, Invite> = new Collection();
 
   constructor(options?: ClientOptions) {
@@ -146,15 +145,15 @@ export default class Client extends BaseManager {
       } else if (
         !commandFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(commandFile) ||
-        path.parse(commandPath).name === "index"
+        path.parse(commandPath).name == "index"
       ) continue;
 
       const tmpCommand = require(commandPath);
       const command =
         typeof tmpCommand !== "function" &&
-        typeof tmpCommand.default === "function"
+        typeof tmpCommand.default == "function"
           ? tmpCommand.default
-          : typeof tmpCommand === "function"
+          : typeof tmpCommand == "function"
           ? tmpCommand
           : null;
 
@@ -187,18 +186,17 @@ export default class Client extends BaseManager {
       } else if (
         !eventFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(eventFile) ||
-        path.parse(eventPath).name === "index"
+        path.parse(eventPath).name == "index"
       ) continue;
 
       const tmpEvent = require(eventPath);
       const event =
-        typeof tmpEvent.default === "function" ? tmpEvent.default : null;
+        typeof tmpEvent.default == "function" ? tmpEvent.default : null;
       if (!event) return;
 
       try {
         const eventObj: Event = new event(this);
         if (eventObj?.eventName) {
-          console.log(eventObj.eventName);
           this.on(eventObj.eventName, (...args) => eventObj.handle(...args))
         }
       } catch (ignored) {}
@@ -220,12 +218,12 @@ export default class Client extends BaseManager {
       } else if (
         !taskFileStats.isFile() ||
         !/^.*\.(js|ts|jsx|tsx)$/i.test(taskFile) ||
-        path.parse(taskPath).name === "index"
+        path.parse(taskPath).name == "index"
       ) continue;
 
       const tmpTask = require(taskPath);
       const task =
-        typeof tmpTask.default === "function" ? tmpTask.default : null;
+        typeof tmpTask.default == "function" ? tmpTask.default : null;
       if (!task) return;
 
       try {

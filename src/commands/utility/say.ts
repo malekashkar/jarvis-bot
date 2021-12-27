@@ -18,7 +18,7 @@ export default class sayCommand extends UtilityCommands {
     const content = await stringQuestion(interaction, "What message would you like to display?");
 
     if(content) {
-      if (option === "here") {
+      if (option == "here") {
         return interaction.reply({ content });
       } else {
         const guildId = await stringQuestion(interaction, "What is the ID of the guild?");

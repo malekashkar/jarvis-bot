@@ -35,7 +35,7 @@ export default class embeds {
     return new MessageEmbed()
       .setTitle(`Operation Complete`)
       .setDescription(
-        type === "GUILD"
+        type == "GUILD"
           ? `The guild has been locked down.`
           : `The channel has been locked down.`
       )

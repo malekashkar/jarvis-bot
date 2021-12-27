@@ -4,7 +4,6 @@ import { GiveawayModel } from "../../models/giveaway";
 import { GuildModel } from "../../models/guild";
 
 export default class GiveawayRequirements extends Event {
-  groupName: Groups = "friday";
   eventName: EventNameType = "guildMemberAdd";
 
   async handle(member: GuildMember) {

@@ -2,14 +2,13 @@ import { Message, TextChannel } from "discord.js";
 import { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import settings from "../settings";
-import Event, { Groups } from ".";
+import Event from ".";
 import { Guild, GuildModel } from "../models/guild";
 import ms from "ms";
 import embeds from "../util/embed";
 
 export default class Advertisement extends Event {
   eventName = "messageCreate";
-  groupName: Groups = "friday";
 
   async handle(message: Message) {
     if (message.author.bot && settings.vision_id !== message.author.id) return;
@@ -17,9 +16,6 @@ export default class Advertisement extends Event {
     const userData =
       (await UserModel.findOne({ userId: message.author.id })) ||
       (await UserModel.create({ userId: message.author.id }));
-
-    const globalData =
-      (await GlobalModel.findOne({})) || (await GlobalModel.create({}));
 
     const guildData =
       (await GuildModel.findOne({ guildId: message.guild.id })) ||
@@ -51,12 +47,12 @@ export default class Advertisement extends Event {
           quest
             .awaitReactions({
               filter: (r, u) =>
-                u.id === message.author.id &&
+                u.id == message.author.id &&
                 ["🚫", "✅"].includes(r.emoji.name),
               max: 1, time: 900000, errors: ["time"]
             })
             .then(async (reaction) => {
-              if (reaction.first().emoji.name === "✅") {
+              if (reaction.first().emoji.name == "✅") {
                 if (quest.deletable) quest.delete();
 
                 message.react("🚫");

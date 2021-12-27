@@ -15,8 +15,6 @@ export default class OrderCommand extends Command {
     .setName("order")
     .setDescription("Order modules to use on Jarvis!");
     
-  groupName: Groups = "default";
-
   async run(
     interaction: CommandInteraction,
     userData: DocumentType<User>,
@@ -25,10 +23,6 @@ export default class OrderCommand extends Command {
     if (!(interaction.channel.type == "DM"))
       return interaction.reply({
         embeds: [embeds.error(`You can only use this command in our DM's!`)]
-      });
-    else if (userData.access)
-      return interaction.reply({
-        embeds: [embeds.error(`You already have access to this discord bot!`)]
       });
 
     const orderData = await OrderModel.findOne({
@@ -61,7 +55,7 @@ export default class OrderCommand extends Command {
     }
 
     const collector = await modulesQuestion.awaitReactions({
-      filter: (r, u) => u.id === interaction.user.id && r.emoji.name === "✅",
+      filter: (r, u) => u.id == interaction.user.id && r.emoji.name == "✅",
       max: 1,
       time: 10 * 60 * 1000,
       errors: ["time"],
@@ -70,7 +64,7 @@ export default class OrderCommand extends Command {
     if (modulesQuestion.deletable) await modulesQuestion.delete();
     if (collector?.first()) {
       const selectedEmojis = modulesQuestion.reactions.cache
-        .filter((x) => x.count === 2 && x.emoji.name !== "✅")
+        .filter((x) => x.count == 2 && x.emoji.name !== "✅")
         .map((x) => x.emoji.name);
       const selectedModules = selectedEmojis.map(
         (x) => modules[moduleEmojis.indexOf(x)]

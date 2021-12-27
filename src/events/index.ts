@@ -14,6 +14,5 @@ export default abstract class Event {
   }
   
   abstract eventName: string;
-  abstract groupName: Groups;
   abstract handle(...args: unknown[]): Promise<void>;
 }

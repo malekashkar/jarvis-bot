@@ -6,7 +6,6 @@ import embeds from "../util/embed";
 
 export default class GiveawayTask extends Task {
     taskName = "giveaways";
-    groupName: Groups = "giveaways";
     interval = 10e3;
 
     async execute() {

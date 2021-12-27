@@ -21,14 +21,14 @@ export async function confirmator(
   
     const reactionCollector = await questionMessage.awaitReactions({
       filter: (r, u) =>
-        (u.id === reactionUserId && r.emoji.name === "✅") ||
-        (u.id === reactionUserId && r.emoji.name === "❎"),
+        (u.id == reactionUserId && r.emoji.name == "✅") ||
+        (u.id == reactionUserId && r.emoji.name == "❎"),
       max: 1,
       time: 900000,
       errors: ["time"]
     });
     
-    return reactionCollector?.first()?.emoji?.name === "✅";
+    return reactionCollector?.first()?.emoji?.name == "✅";
   }
 }
 
@@ -53,7 +53,7 @@ export async function optionsQuestion(
     }
   
     const reactionCollector = await questionMessage.awaitReactions({
-      filter: (r, u) => u.id === reactionUserId && emojis.includes(r.emoji.name),
+      filter: (r, u) => u.id == reactionUserId && emojis.includes(r.emoji.name),
       max: 1,
       time: 900000,
       errors: ["time"]
@@ -84,7 +84,7 @@ export async function optionReactionQuestion(
     }
   
     const reactionCollector = await questionMessage.awaitReactions({
-      filter: (r, u) => u.id === reactionUserId && reactions.includes(r.emoji.name),
+      filter: (r, u) => u.id == reactionUserId && reactions.includes(r.emoji.name),
       max: 1,
       time: 900000,
       errors: ["time"]
@@ -110,7 +110,7 @@ export async function stringQuestion(
   if(questionMessage instanceof Message) {
     const messageCollector = await interaction.channel.awaitMessages({
       filter: (x) =>
-        x.author.id === reactionUserId &&
+        x.author.id == reactionUserId &&
         (options && options.length ? options.includes(x.content) : true),
       max: 1,
       time: 900000,
@@ -140,7 +140,7 @@ export async function numberQuestion(
   if(questionMessage instanceof Message) {
     const messageCollector = await interaction.channel.awaitMessages({
       filter: (x) =>
-        x.author.id === reactionUserId &&
+        x.author.id == reactionUserId &&
         (options && options.length ? options.includes(x.content) : true) &&
         /[0-9]/gm.test(x.content),
       max: 1,
@@ -175,13 +175,13 @@ export async function stringQuestionOrCancel(
     
     const messageCollector = interaction.channel.createMessageCollector({
       filter: (x) =>
-        x.author.id === reactionUserId && (options && options.length ? options.includes(x.content) : true),
+        x.author.id == reactionUserId && (options && options.length ? options.includes(x.content) : true),
       max: 1,
       time: 900000, 
     });
 
     const reactionCollector = questionMessage.createReactionCollector({
-      filter: (r, u) => r.emoji.name === "🚫" && u.id === interaction.user.id,
+      filter: (r, u) => r.emoji.name == "🚫" && u.id == interaction.user.id,
       max: 1,
       time: 900000,
     });
@@ -222,13 +222,13 @@ export async function getTaggedUsersOrCancel(
     
     const messageCollector = interaction.channel.createMessageCollector({
       filter: (x) =>
-        x.author.id === reactionUserId && x.mentions.users.size > 0,
+        x.author.id == reactionUserId && x.mentions.users.size > 0,
       max: 1,
       time: 900000, 
     });
 
     const reactionCollector = questionMessage.createReactionCollector({
-      filter: (r, u) => r.emoji.name === "🚫" && u.id === interaction.user.id,
+      filter: (r, u) => r.emoji.name == "🚫" && u.id == interaction.user.id,
       max: 1,
       time: 900000,
     });
@@ -267,7 +267,7 @@ export async function getTaggedRoles(
   if(questionMessage instanceof Message) {
     const messageCollector = await interaction.channel.awaitMessages({
       filter: (x) =>
-        x.author.id === reactionUserId &&
+        x.author.id == reactionUserId &&
         x.mentions.roles.size > 0,
       max: 1,
       time: 900000,
@@ -298,13 +298,13 @@ export async function getTaggedRolesOrCancel(
       
       const messageCollector = interaction.channel.createMessageCollector({
         filter: (x) =>
-          x.author.id === reactionUserId && x.mentions.roles.size > 0,
+          x.author.id == reactionUserId && x.mentions.roles.size > 0,
         max: 1,
         time: 900000, 
       });
 
       const reactionCollector = questionMessage.createReactionCollector({
-        filter: (r, u) => r.emoji.name === "🚫" && u.id === interaction.user.id,
+        filter: (r, u) => r.emoji.name == "🚫" && u.id == interaction.user.id,
         max: 1,
         time: 900000,
       });
@@ -342,7 +342,7 @@ export async function getTaggedChannels(
   if(questionMessage instanceof Message) {
     const messageCollector = await interaction.channel.awaitMessages({
       filter: (x) =>
-        x.author.id === reactionUserId &&
+        x.author.id == reactionUserId &&
         x.mentions.channels.size > 0,
       max: 1,
       time: 900000,

@@ -1,15 +1,15 @@
 import { Interaction } from "discord.js";
-import { UserModel } from "../models/user";
+import User, { UserModel } from "../models/user";
 import { GlobalModel } from "../models/global";
 import { GuildModel, Guild as DbGuild, Guild } from "../models/guild";
 import Event, { Groups } from ".";
-import { permissionCheck } from "../util";
 import { DocumentType } from "@typegoose/typegoose";
 import { StatsModel } from "../models/stats";
+import settings from "../settings";
+import { Permissions } from "../commands";
 
 export default class CommandHandler extends Event {
   eventName = "interactionCreate";
-  groupName: Groups = "default";
 
   async handle(interaction: Interaction) {
     if(!interaction.isCommand()) return;
@@ -44,7 +44,7 @@ export default class CommandHandler extends Event {
     const command = interaction.commandName;
     for (const commandObj of Array.from(this.client.commands.values())) {
       if (commandObj.disabled) continue;
-      if (commandObj.slashCommand.name.toLowerCase() === command.toLowerCase()) {
+      if (commandObj.slashCommand.name.toLowerCase() == command.toLowerCase()) {
         if (
           commandObj.permission &&
           !permissionCheck(
@@ -58,4 +58,13 @@ export default class CommandHandler extends Event {
       }
     }
   }
+}
+
+export function permissionCheck(userData: DocumentType<User>, permissionType: Permissions, module: Groups) {
+  if(settings.ownerId.includes(userData.userId)) return true;
+  if (
+    permissionType == Permissions.ACCESS && userData.access &&
+    userData.modules.map((x) => x.toLowerCase()).includes(module.toLowerCase())
+  ) return true;
+  return false;
 }
